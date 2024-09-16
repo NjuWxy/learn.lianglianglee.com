@@ -758,6 +758,109 @@ function hide_canvas() {
 
                         <p id="tip" align="center"></p>
 
+                        <div><h1>00 开篇词 业务代码真的会有这么多坑？</h1>
+
+                            <p>你好，我是朱晔，贝壳金服的资深架构师。</p>
+
+                            <p>我先和你说说我这 15 年的工作经历吧，以加深彼此的了解。前 7 年，我专注于.NET 领域，负责业务项目的同时，也做了很多社区工作。在 CSDN 做版主期间，我因为回答了大量有关.NET 的问题，并把很多问题的答案总结成了博客，获得了 3 次微软 MVP 的称号。</p>
+
+                            <p>后来，我转到了 Java 领域，也从程序员变为了架构师，更关注开源项目和互联网架构设计。在空中网，我整体负责了百万人在线的大型 MMO 网游《激战》技术平台的架构设计，期间和团队开发了许多性能和稳定性都不错的 Java 框架；在饿了么，我负责过日千万订单量的物流平台的开发管理和架构工作，遇到了许多只有高并发下才会出现的问题，积累了大量的架构经验；现在，我在贝壳金服的基础架构团队，负责基础组件、中间件、基础服务开发规划，制定一些流程和规范，带领团队自研 Java 后端开发框架、微服务治理平台等，在落地 Spring Cloud 结合 Kubernetes 容器云平台技术体系的过程中，摸索出了很多适合公司项目的基础组件和最佳实践。</p>
+
+                            <p>这 15 年来，我一直没有脱离编码工作，接触过大大小小的项目不下 400 个，自己亲身经历的、见别人踩过的坑不计其数。我感触很深的一点是，业务代码中真的有太多的坑：有些是看似非常简单的知识点反而容易屡次踩坑，比如 Spring 声明式事务不生效的问题；而有些坑因为“潜伏期”长，引发的线上事故造成了大量的人力和资金损失。因此，我系统梳理了这些案例和坑点，最终筛选出 100 个案例，涉及 130 多个坑点，组成了这个课程。</p>
+
+                            <h2>意识不到业务代码的坑，很危险</h2>
+
+                            <p>我想看到 100、130 这两个数字，你不禁要问了：“我写了好几年的业务代码了，遇到问题时上网搜一下就有答案，遇到最多的问题就是服务器不稳定，重启一下基本就可以解决，哪里会有这么多坑呢？”带着这个问题，你继续听我往下说吧。</p>
+
+                            <p>据我观察，很多开发同学没意识到这些坑，有以下三种可能：</p>
+
+                            <p>意识不到坑的存在，比如所谓的服务器不稳定很可能是代码问题导致的，很多时候遇到 OOM、死锁、超时问题在运维层面通过改配置、重启、扩容等手段解决了，没有反推到开发层面去寻找根本原因。</p>
+
+                            <p>有些问题只会在特定情况下暴露。比如，缓存击穿、在多线程环境使用非线程安全的类，只有在多线程或高并发的情况才会暴露问题。</p>
+
+                            <p>有些性能问题不会导致明显的 Bug，只会让程序运行缓慢、内存使用增加，但会在量变到质变的瞬间爆发。</p>
+
+                            <p>而正是因为没有意识到这些坑和问题，采用了错误的处理方式，最后问题一旦爆发，处理起来就非常棘手，这是非常可怕的。下面这些场景有没有感觉似曾相识呢？</p>
+
+                            <p>比如，我曾听说过有一个订单量很大的项目，每天总有上千份订单的状态或流程有问题，需要花费大量的时间来核对数据，修复订单状态。开发同学因为每天牵扯太多精力在排查问题上，根本没时间开发新需求。技术负责人为此头痛不已，无奈之下招了专门的技术支持人员。最后痛定思痛，才决定开启明细日志彻查这个问题，结果发现是自调用方法导致事务没生效的坑。</p>
+
+                            <p>再比如，有个朋友告诉我，他们的金融项目计算利息的代码中，使用了 float 类型而不是 BigDecimal 类来保存和计算金额，导致给用户结算的每一笔利息都多了几分钱。好在，日终对账及时发现了问题。试想一下，结算的有上千个用户，每个用户有上千笔小订单，如果等月终对账的时候再发现，可能已经损失了几百万。</p>
+
+                            <p>再比如，我们使用 RabbitMQ 做异步处理，业务处理失败的消息会循环不断地进入 MQ。问题爆发之前，可能只影响了消息处理的时效性。但等 MQ 彻底瘫痪时，面对 MQ 中堆积的、混杂了死信和正常消息的几百万条数据，你除了清空又能怎么办。但清空 MQ，就意味着要花费几小时甚至几十小时的时间，来补正常的业务数据，对业务影响时间很长。</p>
+
+                            <p>像这样由一个小坑引发的重大事故，不仅仅会给公司造成损失，还会因为自责影响工作状态，降低编码的自信心。我就曾遇到过一位比较负责的核心开发同学，因为一个 Bug 给公司带来数万元的经济损失，最后心理上承受不住提出了辞职。</p>
+
+                            <p>其实，很多时候不是我们不想从根本上解决问题，只是不知道问题到底在了哪里。要避开这些坑、找到这些定时炸弹，第一步就是得知道它们是什么、在哪里、为什么会出现。而讲清楚这些坑点和相关的最佳实践，正是本课程的主要内容。</p>
+
+                            <h2>这个课程是什么？</h2>
+
+                            <p>如果用几个关键词概括这个课程的话，那我会选择“Java”“业务开发”“避坑 100 例”这 3 个。接下来，我就和你详细说说这个课程是什么，以及有什么特点。</p>
+
+                            <p>第一个关键词是“Java”，指的是课程内所有 Demo 都是基于 Java 语言的。</p>
+
+                            <p>如果你熟悉 Java，那可以 100% 体会到这些坑点，也可以直接用这些 Demo 去检查你的业务代码是否也有类似的错误实现。</p>
+
+                            <p>如果你不熟悉 Java 问题也不大，现在大部分高级语言的特性和结构都差不多，许多都是共性问题。此外“设计篇”“安全篇”的内容，基本是脱离具体语言层面的、高层次的问题。因此，即使不使用 Java，你也可以有不少收获，这也是本课程的第一个特点。</p>
+
+                            <p>讲到这里，我要说明的是，这个课程是围绕坑点而不是 Java 语言体系展开的，因此不是系统学习 Java 的教材。</p>
+
+                            <p>第二个关键词是“业务开发”，也就是说课程内容限定在业务项目的开发，侧重业务项目开发时可能遇到的坑。</p>
+
+                            <p>我们先看“业务”这个词。做业务开发时间长的同学尤其知道，业务项目有两大特点：</p>
+
+                            <p>工期紧、逻辑复杂，开发人员会更多地考虑主流程逻辑的正确实现，忽略非主流程逻辑，或保障、补偿、一致性逻辑的实现；</p>
+
+                            <p>往往缺乏详细的设计、监控和容量规划的闭环，结果就是随着业务发展出现各种各样的事故。</p>
+
+                            <p>根据这些性质，我总结出了近 30 个方面的内容，力求覆盖业务项目开发的关键问题。案例的全面性，是本课程的第二大特点。</p>
+
+                            <p>这些案例可以看作是 Java 业务代码的避坑大全，帮助你写出更好的代码，也能帮你进一步补全知识网增加面试的信心。你甚至可以把二级目录当作代码审核的 Checklist，帮助业务项目一起成长和避坑。</p>
+
+                            <p>我们再看“开发”这个词。为了更聚焦，也更有针对性，我把专栏内容限定在业务开发，不会过多地讨论架构、测试、部署运维等阶段的问题。而“设计篇”，重在讲述架构设计上可能会遇到的坑，不会全面、完整地介绍高可用、高并发、可伸缩性等架构因素。</p>
+
+                            <p>第三个关键词是“避坑 100 例”。坑就是容易犯的错，避坑就是踩坑后分析根因，避免重复踩同样的坑。</p>
+
+                            <p>整个课程 30 篇文章，涉及 100 个案例、约 130 个小坑，其中 40% 来自于我经历过或者是见过的 200 多个线上生产事故，剩下的 60% 来自于我开发业务项目，以及日常审核别人的代码发现的问题。贴近实际，而不是讲述过时的或日常开发根本用不到的技术或框架，就是本课程的第三大特点了。</p>
+
+                            <p>大部分案例我会配合一个可执行的 Demo 来演示，Demo 中不仅有错误实现（踩坑），还有修正后的正确实现（避坑）。完整且连续、授人以渔，是本课程的第四大特点。</p>
+
+                            <p>完整且连续，知其所以然。我会按照“知识介绍 -&gt; 还原业务场景 -&gt; 错误实现 -&gt; 正确实现 -&gt; 原理分析 -&gt; 小总结 ”来讲解每个案例，针对每个坑点我至少会给出一个解决方案，并会挑选核心的点和你剖析源码。这样一来，你不仅能避坑，更能知道产生坑的根本原因，提升自己的技术能力。</p>
+
+                            <p>授人以渔。在遇到问题的时候，我们一定是先通过经验和工具来定位分析问题，然后才能定位到坑，并不是一开始就知道为什么的。在这个课程中，我会尽可能地把分析问题的过程完整地呈现给你，而不是直接告诉你为什么，这样你以后遇到问题时也能有解决问题的思路。</p>
+
+                            <p>这也是为什么，网络上虽然有很多关于 Java 代码踩坑的资料，但很多同学却和我反馈说，看过之后印象不深刻，也因为没吃透导致在一个知识点上重复踩坑。鉴于此，我还会与你分析我根据多年经验和思考，梳理出的一些最佳实践。</p>
+
+                            <p>看到这里，是不是迫不及待地想要看看这个专栏的内容都会涉及哪些坑点了呢？那就看看下面这张思维导图吧：</p>
+
+                            <p><img src="assets/0ee7e3490bae45d6f0ce06a050695020.jpg" alt="img" /></p>
+
+                            <p>鉴于这个专栏的内容和特点，我再和你说说最佳的学习方式是什么。</p>
+
+                            <h2>学习课程的最佳方法</h2>
+
+                            <p>我们都知道，编程是一门实践科学，只看不练、不思考，效果通常不会太好。因此，我建议你打开每篇文章后，能够按照下面的方式深入学习：</p>
+
+                            <p>对于每一个坑点，实际运行调试一下源码，使用文中提到的工具和方法重现问题，眼见为实。</p>
+
+                            <p>对于每一个坑点，再思考下除了文内的解决方案和思路外，是否还有其他修正方式。</p>
+
+                            <p>对于坑点根因中涉及的 JDK 或框架源码分析，你可以找到相关类再系统阅读一下源码。</p>
+
+                            <p>实践课后思考题。这些思考题，有的是对文章内容的补充，有的是额外容易踩的坑。</p>
+
+                            <p>理解了课程涉及的所有案例后，你应该就对业务代码大部分容易犯错的点了如指掌了，不仅仅自己可以写出更高质量的业务代码，还可以在审核别人代码时发现可能存在的问题，帮助整个团队成长。</p>
+
+                            <p>当然了，你从这个课程收获的将不仅是解决案例中那些问题的方法，还可以提升自己分析定位问题、阅读源码的能力。当你再遇到其他诡异的坑时，也能有清晰的解决思路，也可以成长为一名救火专家，帮助大家一起定位、分析问题。</p>
+
+                            <p>好了，以上就是我今天想要和你分享的内容了。请赶快跟随我们的课程开启避坑之旅吧，也欢迎你留言说说自己的情况，你都踩过哪些坑、对写业务代码又有哪些困惑？我们下一讲见！</p>
+
+                        </div>
+
+                    </div>
+                    <div class="book-post">
+
+                        <p id="tip" align="center"></p>
+
                         <div><h1>01 使用了并发工具类库，线程安全就高枕无忧了吗？</h1>
 
 <p>你好，我是朱晔。作为课程的第一讲，我今天要和你聊聊使用并发工具类库相关的话题。</p>
@@ -1857,22 +1960,8228 @@ public Map testRead() {
 </div>
 
                     </div>
+                    <div class="book-post">
 
-                    <div>
+                        <p id="tip" align="center"></p>
 
-                        <div style="float: left">
+                        <div><h1>02 代码加锁：不要让“锁”事成为烦心事</h1>
 
-                            <a href="/专栏/Java 业务开发常见错误 100 例/00 开篇词 业务代码真的会有这么多坑？.md.html">上一页</a>
+                            <p>你好，我是朱晔。</p>
 
-                        </div>
+                            <p>在上一讲中，我与你介绍了使用并发容器等工具解决线程安全的误区。今天，我们来看看解决线程安全问题的另一种重要手段——锁，在使用上比较容易犯哪些错。</p>
 
-                        <div style="float: right">
+                            <p>我先和你分享一个有趣的案例吧。有一天，一位同学在群里说“见鬼了，疑似遇到了一个 JVM 的 Bug”，我们都很好奇是什么 Bug。</p>
 
-                            <a href="/专栏/Java 业务开发常见错误 100 例/02 代码加锁：不要让“锁”事成为烦心事.md.html">下一页</a>
+                            <p>于是，他贴出了这样一段代码：在一个类里有两个 int 类型的字段 a 和 b，有一个 add 方法循环 1 万次对 a 和 b 进行 ++ 操作，有另一个 compare 方法，同样循环 1 万次判断 a 是否小于 b，条件成立就打印 a 和 b 的值，并判断 a&gt;b 是否成立。</p>
+
+                            <pre><code>@Slf4j
+
+
+
+public class Interesting {
+
+
+
+    volatile int a = 1;
+
+
+
+    volatile int b = 1;
+
+
+
+    public void add() {
+
+
+
+        log.info(&quot;add start&quot;);
+
+
+
+        for (int i = 0; i &lt; 10000; i++) {
+
+
+
+            a++;
+
+
+
+            b++;
+
+
+
+        }
+
+
+
+        log.info(&quot;add done&quot;);
+
+
+
+    }
+
+
+
+    public void compare() {
+
+
+
+        log.info(&quot;compare start&quot;);
+
+
+
+        for (int i = 0; i &lt; 10000; i++) {
+
+
+
+            //a始终等于b吗？
+
+
+
+            if (a &lt; b) {
+
+
+
+                log.info(&quot;a:{},b:{},{}&quot;, a, b, a &gt; b);
+
+
+
+                //最后的a&gt;b应该始终是false吗？
+
+
+
+            }
+
+
+
+        }
+
+
+
+        log.info(&quot;compare done&quot;);
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>他起了两个线程来分别执行 add 和 compare 方法：</p>
+
+                            <pre><code>Interesting interesting = new Interesting();
+
+
+
+new Thread(() -&gt; interesting.add()).start();
+
+
+
+new Thread(() -&gt; interesting.compare()).start();
+
+
+
+</code></pre>
+
+                            <p>按道理，a 和 b 同样进行累加操作，应该始终相等，compare 中的第一次判断应该始终不会成立，不会输出任何日志。但，执行代码后发现不但输出了日志，而且更诡异的是，compare 方法在判断 a&lt;b 成立的情况下还输出了 a&gt;b 也成立：</p>
+
+                            <p><img src="assets/9ec61aada64ac6d38681dd199c0ee61d.png" alt="img" /></p>
+
+                            <p>群里一位同学看到这个问题笑了，说：“这哪是 JVM 的 Bug，分明是线程安全问题嘛。很明显，你这是在操作两个字段 a 和 b，有线程安全问题，应该为 add 方法加上锁，确保 a 和 b 的 ++ 是原子性的，就不会错乱了。”随后，他为 add 方法加上了锁：</p>
+
+                            <pre><code>public synchronized void add()
+
+
+
+</code></pre>
+
+                            <p>但，加锁后问题并没有解决。</p>
+
+                            <p>我们来仔细想一下，为什么锁可以解决线程安全问题呢。因为只有一个线程可以拿到锁，所以加锁后的代码中的资源操作是线程安全的。但是，这个案例中的 add 方法始终只有一个线程在操作，显然只为 add 方法加锁是没用的。</p>
+
+                            <p>之所以出现这种错乱，是因为两个线程是交错执行 add 和 compare 方法中的业务逻辑，而且这些业务逻辑不是原子性的：a++ 和 b++ 操作中可以穿插在 compare 方法的比较代码中；更需要注意的是，a&lt;b 这种比较操作在字节码层面是加载 a、加载 b 和比较三步，代码虽然是一行但也不是原子性的。</p>
+
+                            <p>所以，正确的做法应该是，为 add 和 compare 都加上方法锁，确保 add 方法执行时，compare 无法读取 a 和 b：</p>
+
+                            <pre><code>public synchronized void add()
+
+
+
+public synchronized void compare()
+
+
+
+</code></pre>
+
+                            <p>所以，使用锁解决问题之前一定要理清楚，我们要保护的是什么逻辑，多线程执行的情况又是怎样的。</p>
+
+                            <h2>加锁前要清楚锁和被保护的对象是不是一个层面的</h2>
+
+                            <p>除了没有分析清线程、业务逻辑和锁三者之间的关系随意添加无效的方法锁外，还有一种比较常见的错误是，没有理清楚锁和要保护的对象是否是一个层面的。</p>
+
+                            <p>我们知道静态字段属于类，类级别的锁才能保护；而非静态字段属于类实例，实例级别的锁就可以保护。</p>
+
+                            <p>先看看这段代码有什么问题：在类 Data 中定义了一个静态的 int 字段 counter 和一个非静态的 wrong 方法，实现 counter 字段的累加操作。</p>
+
+                            <pre><code>class Data {
+
+
+
+    @Getter
+
+
+
+    private static int counter = 0;
+
+
+
+
+
+
+
+    public static int reset() {
+
+
+
+        counter = 0;
+
+
+
+        return counter;
+
+
+
+    }
+
+
+
+    public synchronized void wrong() {
+
+
+
+        counter++;
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>写一段代码测试下：</p>
+
+                            <pre><code>@GetMapping(&quot;wrong&quot;)
+
+
+
+public int wrong(@RequestParam(value = &quot;count&quot;, defaultValue = &quot;1000000&quot;) int count) {
+
+
+
+    Data.reset();
+
+
+
+    //多线程循环一定次数调用Data类不同实例的wrong方法
+
+
+
+    IntStream.rangeClosed(1, count).parallel().forEach(i -&gt; new Data().wrong());
+
+
+
+    return Data.getCounter();
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>因为默认运行 100 万次，所以执行后应该输出 100 万，但页面输出的是 639242：</p>
+
+                            <p><img src="assets/777f520e9d0be89b66e814d3e7c1a30b.png" alt="img" /></p>
+
+                            <p>我们来分析下为什么会出现这个问题吧。</p>
+
+                            <p>在非静态的 wrong 方法上加锁，只能确保多个线程无法执行同一个实例的 wrong 方法，却不能保证不会执行不同实例的 wrong 方法。而静态的 counter 在多个实例中共享，所以必然会出现线程安全问题。</p>
+
+                            <p>理清思路后，修正方法就很清晰了：同样在类中定义一个 Object 类型的静态字段，在操作 counter 之前对这个字段加锁。</p>
+
+                            <pre><code>class Data {
+
+
+
+    @Getter
+
+
+
+    private static int counter = 0;
+
+
+
+    private static Object locker = new Object();
+
+
+
+    public void right() {
+
+
+
+        synchronized (locker) {
+
+
+
+            counter++;
+
+
+
+        }
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>你可能要问了，把 wrong 方法定义为静态不就可以了，这个时候锁是类级别的。可以是可以，但我们不可能为了解决线程安全问题改变代码结构，把实例方法改为静态方法。</p>
+
+                            <p>感兴趣的同学还可以从字节码以及 JVM 的层面继续探索一下，代码块级别的 synchronized 和方法上标记 synchronized 关键字，在实现上有什么区别。</p>
+
+                            <h2>加锁要考虑锁的粒度和场景问题</h2>
+
+                            <p>在方法上加 synchronized 关键字实现加锁确实简单，也因此我曾看到一些业务代码中几乎所有方法都加了 synchronized，但这种滥用 synchronized 的做法：</p>
+
+                            <p>一是，没必要。通常情况下 60% 的业务代码是三层架构，数据经过无状态的 Controller、Service、Repository 流转到数据库，没必要使用 synchronized 来保护什么数据。</p>
+
+                            <p>二是，可能会极大地降低性能。使用 Spring 框架时，默认情况下 Controller、Service、Repository 是单例的，加上 synchronized 会导致整个程序几乎就只能支持单线程，造成极大的性能问题。</p>
+
+                            <p>即使我们确实有一些共享资源需要保护，也要尽可能降低锁的粒度，仅对必要的代码块甚至是需要保护的资源本身加锁。</p>
+
+                            <p>比如，在业务代码中，有一个 ArrayList 因为会被多个线程操作而需要保护，又有一段比较耗时的操作（代码中的 slow 方法）不涉及线程安全问题，应该如何加锁呢？</p>
+
+                            <p>错误的做法是，给整段业务逻辑加锁，把 slow 方法和操作 ArrayList 的代码同时纳入 synchronized 代码块；更合适的做法是，把加锁的粒度降到最低，只在操作 ArrayList 的时候给这个 ArrayList 加锁。</p>
+
+                            <pre><code>private List&lt;Integer&gt; data = new ArrayList&lt;&gt;();
+
+
+
+//不涉及共享资源的慢方法
+
+
+
+private void slow() {
+
+
+
+    try {
+
+
+
+        TimeUnit.MILLISECONDS.sleep(10);
+
+
+
+    } catch (InterruptedException e) {
+
+
+
+    }
+
+
+
+}
+
+
+
+//错误的加锁方法
+
+
+
+@GetMapping(&quot;wrong&quot;)
+
+
+
+public int wrong() {
+
+
+
+    long begin = System.currentTimeMillis();
+
+
+
+    IntStream.rangeClosed(1, 1000).parallel().forEach(i -&gt; {
+
+
+
+        //加锁粒度太粗了
+
+
+
+        synchronized (this) {
+
+
+
+            slow();
+
+
+
+            data.add(i);
+
+
+
+        }
+
+
+
+    });
+
+
+
+    log.info(&quot;took:{}&quot;, System.currentTimeMillis() - begin);
+
+
+
+    return data.size();
+
+
+
+}
+
+
+
+//正确的加锁方法
+
+
+
+@GetMapping(&quot;right&quot;)
+
+
+
+public int right() {
+
+
+
+    long begin = System.currentTimeMillis();
+
+
+
+    IntStream.rangeClosed(1, 1000).parallel().forEach(i -&gt; {
+
+
+
+        slow();
+
+
+
+        //只对List加锁
+
+
+
+        synchronized (data) {
+
+
+
+            data.add(i);
+
+
+
+        }
+
+
+
+    });
+
+
+
+    log.info(&quot;took:{}&quot;, System.currentTimeMillis() - begin);
+
+
+
+    return data.size();
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>执行这段代码，同样是 1000 次业务操作，正确加锁的版本耗时 1.4 秒，而对整个业务逻辑加锁的话耗时 11 秒。</p>
+
+                            <p><img src="assets/1cb278c010719ee00d988dbb2a42c543.png" alt="img" /></p>
+
+                            <p>如果精细化考虑了锁应用范围后，性能还无法满足需求的话，我们就要考虑另一个维度的粒度问题了，即：区分读写场景以及资源的访问冲突，考虑使用悲观方式的锁还是乐观方式的锁。</p>
+
+                            <p>一般业务代码中，很少需要进一步考虑这两种更细粒度的锁，所以我只和你分享几个大概的结论，你可以根据自己的需求来考虑是否有必要进一步优化：</p>
+
+                            <p>对于读写比例差异明显的场景，考虑使用 ReentrantReadWriteLock 细化区分读写锁，来提高性能。</p>
+
+                            <p>如果你的 JDK 版本高于 1.8、共享资源的冲突概率也没那么大的话，考虑使用 StampedLock 的乐观读的特性，进一步提高性能。</p>
+
+                            <p>JDK 里 ReentrantLock 和 ReentrantReadWriteLock 都提供了公平锁的版本，在没有明确需求的情况下不要轻易开启公平锁特性，在任务很轻的情况下开启公平锁可能会让性能下降上百倍。</p>
+
+                            <h2>多把锁要小心死锁问题</h2>
+
+                            <p>刚才我们聊到锁的粒度够用就好，这就意味着我们的程序逻辑中有时会存在一些细粒度的锁。但一个业务逻辑如果涉及多把锁，容易产生死锁问题。</p>
+
+                            <p>之前我遇到过这样一个案例：下单操作需要锁定订单中多个商品的库存，拿到所有商品的锁之后进行下单扣减库存操作，全部操作完成之后释放所有的锁。代码上线后发现，下单失败概率很高，失败后需要用户重新下单，极大影响了用户体验，还影响到了销量。</p>
+
+                            <p>经排查发现是死锁引起的问题，背后原因是扣减库存的顺序不同，导致并发的情况下多个线程可能相互持有部分商品的锁，又等待其他线程释放另一部分商品的锁，于是出现了死锁问题。</p>
+
+                            <p>接下来，我们剖析一下核心的业务代码。</p>
+
+                            <p>首先，定义一个商品类型，包含商品名、库存剩余和商品的库存锁三个属性，每一种商品默认库存 1000 个；然后，初始化 10 个这样的商品对象来模拟商品清单：</p>
+
+                            <pre><code>@Data
+
+
+
+@RequiredArgsConstructor
+
+
+
+static class Item {
+
+
+
+    final String name; //商品名
+
+
+
+    int remaining = 1000; //库存剩余
+
+
+
+    @ToString.Exclude //ToString不包含这个字段
+
+
+
+    ReentrantLock lock = new ReentrantLock();
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>随后，写一个方法模拟在购物车进行商品选购，每次从商品清单（items 字段）中随机选购三个商品（为了逻辑简单，我们不考虑每次选购多个同类商品的逻辑，购物车中不体现商品数量）：</p>
+
+                            <pre><code>private List&lt;Item&gt; createCart() {
+
+
+
+    return IntStream.rangeClosed(1, 3)
+
+
+
+            .mapToObj(i -&gt; &quot;item&quot; + ThreadLocalRandom.current().nextInt(items.size()))
+
+
+
+            .map(name -&gt; items.get(name)).collect(Collectors.toList());
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>下单代码如下：先声明一个 List 来保存所有获得的锁，然后遍历购物车中的商品依次尝试获得商品的锁，最长等待 10 秒，获得全部锁之后再扣减库存；如果有无法获得锁的情况则解锁之前获得的所有锁，返回 false 下单失败。</p>
+
+                            <pre><code>private boolean createOrder(List&lt;Item&gt; order) {
+
+
+
+    //存放所有获得的锁
+
+
+
+    List&lt;ReentrantLock&gt; locks = new ArrayList&lt;&gt;();
+
+
+
+    for (Item item : order) {
+
+
+
+        try {
+
+
+
+            //获得锁10秒超时
+
+
+
+            if (item.lock.tryLock(10, TimeUnit.SECONDS)) {
+
+
+
+                locks.add(item.lock);
+
+
+
+            } else {
+
+
+
+                locks.forEach(ReentrantLock::unlock);
+
+
+
+                return false;
+
+
+
+            }
+
+
+
+        } catch (InterruptedException e) {
+
+
+
+        }
+
+
+
+    }
+
+
+
+    //锁全部拿到之后执行扣减库存业务逻辑
+
+
+
+    try {
+
+
+
+        order.forEach(item -&gt; item.remaining--);
+
+
+
+    } finally {
+
+
+
+        locks.forEach(ReentrantLock::unlock);
+
+
+
+    }
+
+
+
+    return true;
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>我们写一段代码测试这个下单操作。模拟在多线程情况下进行 100 次创建购物车和下单操作，最后通过日志输出成功的下单次数、总剩余的商品个数、100 次下单耗时，以及下单完成后的商品库存明细：</p>
+
+                            <pre><code>@GetMapping(&quot;wrong&quot;)
+
+
+
+public long wrong() {
+
+
+
+    long begin = System.currentTimeMillis();
+
+
+
+    //并发进行100次下单操作，统计成功次数
+
+
+
+    long success = IntStream.rangeClosed(1, 100).parallel()
+
+
+
+            .mapToObj(i -&gt; {
+
+
+
+                List&lt;Item&gt; cart = createCart();
+
+
+
+                return createOrder(cart);
+
+
+
+            })
+
+
+
+            .filter(result -&gt; result)
+
+
+
+            .count();
+
+
+
+    log.info(&quot;success:{} totalRemaining:{} took:{}ms items:{}&quot;,
+
+
+
+            success,
+
+
+
+            items.entrySet().stream().map(item -&gt; item.getValue().remaining).reduce(0, Integer::sum),
+
+
+
+            System.currentTimeMillis() - begin, items);
+
+
+
+    return success;
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>运行程序，输出如下日志：</p>
+
+                            <p><img src="assets/141a5ed915e08e50c0f6b066bea36e05.png" alt="img" /></p>
+
+                            <p>可以看到，100 次下单操作成功了 65 次，10 种商品总计 10000 件，库存总计为 9805，消耗了 195 件符合预期（65 次下单成功，每次下单包含三件商品），总耗时 50 秒。</p>
+
+                            <p>为什么会这样呢？</p>
+
+                            <p>使用 JDK 自带的 VisualVM 工具来跟踪一下，重新执行方法后不久就可以看到，线程 Tab 中提示了死锁问题，根据提示点击右侧线程 Dump 按钮进行线程抓取操作：</p>
+
+                            <p><img src="assets/ff24ac10bd0635ef4bf5987038b622ce.png" alt="img" /></p>
+
+                            <p>查看抓取出的线程栈，在页面中部可以看到如下日志：</p>
+
+                            <p><img src="assets/c32cb32eb5433aae3b392738a80bca42.png" alt="img" /></p>
+
+                            <p>显然，是出现了死锁，线程 4 在等待的一个锁被线程 3 持有，线程 3 在等待的另一把锁被线程 4 持有。</p>
+
+                            <p>那为什么会有死锁问题呢？</p>
+
+                            <p>我们仔细回忆一下购物车添加商品的逻辑，随机添加了三种商品，假设一个购物车中的商品是 item1 和 item2，另一个购物车中的商品是 item2 和 item1，一个线程先获取到了 item1 的锁，同时另一个线程获取到了 item2 的锁，然后两个线程接下来要分别获取 item2 和 item1 的锁，这个时候锁已经被对方获取了，只能相互等待一直到 10 秒超时。</p>
+
+                            <p>其实，避免死锁的方案很简单，为购物车中的商品排一下序，让所有的线程一定是先获取 item1 的锁然后获取 item2 的锁，就不会有问题了。所以，我只需要修改一行代码，对 createCart 获得的购物车按照商品名进行排序即可：</p>
+
+                            <pre><code>@GetMapping(&quot;right&quot;)
+
+
+
+public long right() {
+
+
+
+    ...
+
+
+
+.
+
+
+
+    long success = IntStream.rangeClosed(1, 100).parallel()
+
+
+
+            .mapToObj(i -&gt; {
+
+
+
+                List&lt;Item&gt; cart = createCart().stream()
+
+
+
+                        .sorted(Comparator.comparing(Item::getName))
+
+
+
+                        .collect(Collectors.toList());
+
+
+
+                return createOrder(cart);
+
+
+
+            })
+
+
+
+            .filter(result -&gt; result)
+
+
+
+            .count();
+
+
+
+    ...
+
+
+
+    return success;
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>测试一下 right 方法，不管执行多少次都是 100 次成功下单，而且性能相当高，达到了 3000 以上的 TPS：</p>
+
+                            <p><img src="assets/a41d077eeecc8b922503409d13a465e4.png" alt="img" /></p>
+
+                            <p>这个案例中，虽然产生了死锁问题，但因为尝试获取锁的操作并不是无限阻塞的，所以没有造成永久死锁，之后的改进就是避免循环等待，通过对购物车的商品进行排序来实现有顺序的加锁，避免循环等待。</p>
+
+                            <h2>重点回顾</h2>
+
+                            <p>我们一起总结回顾下，使用锁来解决多线程情况下线程安全问题的坑吧。</p>
+
+                            <p>第一，使用 synchronized 加锁虽然简单，但我们首先要弄清楚共享资源是类还是实例级别的、会被哪些线程操作，synchronized 关联的锁对象或方法又是什么范围的。</p>
+
+                            <p>第二，加锁尽可能要考虑粒度和场景，锁保护的代码意味着无法进行多线程操作。对于 Web 类型的天然多线程项目，对方法进行大范围加锁会显著降级并发能力，要考虑尽可能地只为必要的代码块加锁，降低锁的粒度；而对于要求超高性能的业务，还要细化考虑锁的读写场景，以及悲观优先还是乐观优先，尽可能针对明确场景精细化加锁方案，可以在适当的场景下考虑使用 ReentrantReadWriteLock、StampedLock 等高级的锁工具类。</p>
+
+                            <p>第三，业务逻辑中有多把锁时要考虑死锁问题，通常的规避方案是，避免无限等待和循环等待。</p>
+
+                            <p>此外，如果业务逻辑中锁的实现比较复杂的话，要仔细看看加锁和释放是否配对，是否有遗漏释放或重复释放的可能性；并且对于分布式锁要考虑锁自动超时释放了，而业务逻辑却还在进行的情况下，如果别的线线程或进程拿到了相同的锁，可能会导致重复执行。</p>
+
+                            <p>为演示方便，今天的案例是在 Controller 的逻辑中开新的线程或使用线程池进行并发模拟，我们当然可以意识到哪些对象是并发操作的。但对于 Web 应用程序的天然多线程场景，你可能更容易忽略这点，并且也可能因为误用锁降低应用整体的吞吐量。如果你的业务代码涉及复杂的锁操作，强烈建议 Mock 相关外部接口或数据库操作后对应用代码进行压测，通过压测排除锁误用带来的性能问题和死锁问题。</p>
+
+                            <p>今天用到的代码，我都放在了 GitHub 上，你可以点击这个链接查看。</p>
+
+                            <h2>思考与讨论</h2>
+
+                            <p>本文开头的例子里，变量 a、b 都使用了 volatile 关键字，你知道原因吗？我之前遇到过这样一个坑：我们开启了一个线程无限循环来跑一些任务，有一个 bool 类型的变量来控制循环的退出，默认为 true 代表执行，一段时间后主线程将这个变量设置为了 false。如果这个变量不是 volatile 修饰的，子线程可以退出吗？你能否解释其中的原因呢？</p>
+
+                            <p>文末我们又提了两个坑，一是加锁和释放没有配对的问题，二是锁自动释放导致的重复逻辑执行的问题。你有什么方法来发现和解决这两种问题吗？</p>
+
+                            <p>在使用锁的过程中，你还遇到过其他坑吗？我是朱晔，欢迎在评论区与我留言分享你的想法，也欢迎你把这篇文章分享给你的朋友或同事，一起交流。</p>
 
                         </div>
 
                     </div>
+                    <div class="book-post">
+
+                        <p id="tip" align="center"></p>
+
+                        <div><h1>03 线程池：业务代码最常用也最容易犯错的组件</h1>
+
+                            <p>你好，我是朱晔。今天，我来讲讲使用线程池需要注意的一些问题。</p>
+
+                            <p>在程序中，我们会用各种池化技术来缓存创建昂贵的对象，比如线程池、连接池、内存池。一般是预先创建一些对象放入池中，使用的时候直接取出使用，用完归还以便复用，还会通过一定的策略调整池中缓存对象的数量，实现池的动态伸缩。</p>
+
+                            <p>由于线程的创建比较昂贵，随意、没有控制地创建大量线程会造成性能问题，因此短平快的任务一般考虑使用线程池来处理，而不是直接创建线程。</p>
+
+                            <p>今天，我们就针对线程池这个话题展开讨论，通过三个生产事故，来看看使用线程池应该注意些什么。</p>
+
+                            <h2>线程池的声明需要手动进行</h2>
+
+                            <p>Java 中的 Executors 类定义了一些快捷的工具方法，来帮助我们快速创建线程池。《阿里巴巴 Java 开发手册》中提到，禁止使用这些方法来创建线程池，而应该手动 new ThreadPoolExecutor 来创建线程池。这一条规则的背后，是大量血淋淋的生产事故，最典型的就是 newFixedThreadPool 和 newCachedThreadPool，可能因为资源耗尽导致 OOM 问题。</p>
+
+                            <p>首先，我们来看一下 newFixedThreadPool 为什么可能会出现 OOM 的问题。</p>
+
+                            <p>我们写一段测试代码，来初始化一个单线程的 FixedThreadPool，循环 1 亿次向线程池提交任务，每个任务都会创建一个比较大的字符串然后休眠一小时：</p>
+
+                            <pre><code>@GetMapping(&quot;oom1&quot;)
+
+
+
+public void oom1() throws InterruptedException {
+
+
+
+    ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+
+
+
+    //打印线程池的信息，稍后我会解释这段代码
+
+
+
+    printStats(threadPool);
+
+
+
+    for (int i = 0; i &lt; 100000000; i++) {
+
+
+
+        threadPool.execute(() -&gt; {
+
+
+
+            String payload = IntStream.rangeClosed(1, 1000000)
+
+
+
+                    .mapToObj(__ -&gt; &quot;a&quot;)
+
+
+
+                    .collect(Collectors.joining(&quot;&quot;)) + UUID.randomUUID().toString();
+
+
+
+            try {
+
+
+
+                TimeUnit.HOURS.sleep(1);
+
+
+
+            } catch (InterruptedException e) {
+
+
+
+            }
+
+
+
+            log.info(payload);
+
+
+
+        });
+
+
+
+    }
+
+
+
+    threadPool.shutdown();
+
+
+
+    threadPool.awaitTermination(1, TimeUnit.HOURS);
+
+
+
+}
+
+</code></pre>
+
+                            <p>执行程序后不久，日志中就出现了如下 OOM：</p>
+
+                            <pre><code>Exception in thread &quot;http-nio-45678-ClientPoller&quot; java.lang.OutOfMemoryError: GC overhead limit exceeded
+
+
+
+</code></pre>
+
+                            <p>翻看 newFixedThreadPool 方法的源码不难发现，线程池的工作队列直接 new 了一个 LinkedBlockingQueue，而默认构造方法的 LinkedBlockingQueue 是一个 Integer.MAX_VALUE 长度的队列，可以认为是无界的：</p>
+
+                            <pre><code>public static ExecutorService newFixedThreadPool(int nThreads) {
+
+
+
+    return new ThreadPoolExecutor(nThreads, nThreads,
+
+
+
+                                  0L, TimeUnit.MILLISECONDS,
+
+
+
+                                  new LinkedBlockingQueue&lt;Runnable&gt;());
+
+
+
+}
+
+
+
+public class LinkedBlockingQueue&lt;E&gt; extends AbstractQueue&lt;E&gt;
+
+
+
+        implements BlockingQueue&lt;E&gt;, java.io.Serializable {
+
+
+
+    ...
+
+
+
+
+
+
+
+    /**
+
+
+
+     \* Creates a {@code LinkedBlockingQueue} with a capacity of
+
+
+
+     \* {@link Integer#MAX_VALUE}.
+
+
+
+     */
+
+
+
+    public LinkedBlockingQueue() {
+
+
+
+        this(Integer.MAX_VALUE);
+
+
+
+    }
+
+
+
+...
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>虽然使用 newFixedThreadPool 可以把工作线程控制在固定的数量上，但任务队列是无界的。如果任务较多并且执行较慢的话，队列可能会快速积压，撑爆内存导致 OOM。</p>
+
+                            <p>我们再把刚才的例子稍微改一下，改为使用 newCachedThreadPool 方法来获得线程池。程序运行不久后，同样看到了如下 OOM 异常：</p>
+
+                            <pre><code>[11:30:30.487] [http-nio-45678-exec-1] [ERROR] [.a.c.c.C.[.[.[/].[dispatcherServlet]:175 ] - Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Handler dispatch failed; nested exception is java.lang.OutOfMemoryError: unable to create new native thread] with root cause
+
+
+
+java.lang.OutOfMemoryError: unable to create new native thread
+
+
+
+</code></pre>
+
+                            <p>从日志中可以看到，这次 OOM 的原因是无法创建线程，翻看 newCachedThreadPool 的源码可以看到，这种线程池的最大线程数是 Integer.MAX_VALUE，可以认为是没有上限的，而其工作队列 SynchronousQueue 是一个没有存储空间的阻塞队列。这意味着，只要有请求到来，就必须找到一条工作线程来处理，如果当前没有空闲的线程就再创建一条新的。</p>
+
+                            <p>由于我们的任务需要 1 小时才能执行完成，大量的任务进来后会创建大量的线程。我们知道线程是需要分配一定的内存空间作为线程栈的，比如 1MB，因此无限制创建线程必然会导致 OOM：</p>
+
+                            <pre><code>public static ExecutorService newCachedThreadPool() {
+
+
+
+    return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+
+
+
+                                  60L, TimeUnit.SECONDS,
+
+
+
+                                  new SynchronousQueue&lt;Runnable&gt;());
+
+
+
+</code></pre>
+
+                            <p>其实，大部分 Java 开发同学知道这两种线程池的特性，只是抱有侥幸心理，觉得只是使用线程池做一些轻量级的任务，不可能造成队列积压或开启大量线程。</p>
+
+                            <p>但，现实往往是残酷的。我之前就遇到过这么一个事故：用户注册后，我们调用一个外部服务去发送短信，发送短信接口正常时可以在 100 毫秒内响应，TPS 100 的注册量，CachedThreadPool 能稳定在占用 10 个左右线程的情况下满足需求。在某个时间点，外部短信服务不可用了，我们调用这个服务的超时又特别长，比如 1 分钟，1 分钟可能就进来了 6000 用户，产生 6000 个发送短信的任务，需要 6000 个线程，没多久就因为无法创建线程导致了 OOM，整个应用程序崩溃。</p>
+
+                            <p>因此，我同样不建议使用 Executors 提供的两种快捷的线程池，原因如下：</p>
+
+                            <p>我们需要根据自己的场景、并发情况来评估线程池的几个核心参数，包括核心线程数、最大线程数、线程回收策略、工作队列的类型，以及拒绝策略，确保线程池的工作行为符合需求，一般都需要设置有界的工作队列和可控的线程数。</p>
+
+                            <p>任何时候，都应该为自定义线程池指定有意义的名称，以方便排查问题。当出现线程数量暴增、线程死锁、线程占用大量 CPU、线程执行出现异常等问题时，我们往往会抓取线程栈。此时，有意义的线程名称，就可以方便我们定位问题。</p>
+
+                            <p>除了建议手动声明线程池以外，我还建议用一些监控手段来观察线程池的状态。线程池这个组件往往会表现得任劳任怨、默默无闻，除非是出现了拒绝策略，否则压力再大都不会抛出一个异常。如果我们能提前观察到线程池队列的积压，或者线程数量的快速膨胀，往往可以提早发现并解决问题。</p>
+
+                            <h2>线程池线程管理策略详解</h2>
+
+                            <p>在之前的 Demo 中，我们用一个 printStats 方法实现了最简陋的监控，每秒输出一次线程池的基本内部信息，包括线程数、活跃线程数、完成了多少任务，以及队列中还有多少积压任务等信息：</p>
+
+                            <pre><code>private void printStats(ThreadPoolExecutor threadPool) {
+
+
+
+   Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -&gt; {
+
+
+
+        log.info(&quot;=========================&quot;);
+
+
+
+        log.info(&quot;Pool Size: {}&quot;, threadPool.getPoolSize());
+
+
+
+        log.info(&quot;Active Threads: {}&quot;, threadPool.getActiveCount());
+
+
+
+        log.info(&quot;Number of Tasks Completed: {}&quot;, threadPool.getCompletedTaskCount());
+
+
+
+        log.info(&quot;Number of Tasks in Queue: {}&quot;, threadPool.getQueue().size());
+
+
+
+        log.info(&quot;=========================&quot;);
+
+
+
+    }, 0, 1, TimeUnit.SECONDS);
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>接下来，我们就利用这个方法来观察一下线程池的基本特性吧。</p>
+
+                            <p>首先，自定义一个线程池。这个线程池具有 2 个核心线程、5 个最大线程、使用容量为 10 的 ArrayBlockingQueue 阻塞队列作为工作队列，使用默认的 AbortPolicy 拒绝策略，也就是任务添加到线程池失败会抛出 RejectedExecutionException。此外，我们借助了 Jodd 类库的 ThreadFactoryBuilder 方法来构造一个线程工厂，实现线程池线程的自定义命名。</p>
+
+                            <p>然后，我们写一段测试代码来观察线程池管理线程的策略。测试代码的逻辑为，每次间隔 1 秒向线程池提交任务，循环 20 次，每个任务需要 10 秒才能执行完成，代码如下：</p>
+
+                            <pre><code>@GetMapping(&quot;right&quot;)
+
+
+
+public int right() throws InterruptedException {
+
+
+
+    //使用一个计数器跟踪完成的任务数
+
+
+
+    AtomicInteger atomicInteger = new AtomicInteger();
+
+
+
+    //创建一个具有2个核心线程、5个最大线程，使用容量为10的ArrayBlockingQueue阻塞队列作为工作队列的线程池，使用默认的AbortPolicy拒绝策略
+
+
+
+    ThreadPoolExecutor threadPool = new ThreadPoolExecutor(
+
+
+
+            2, 5,
+
+
+
+            5, TimeUnit.SECONDS,
+
+
+
+            new ArrayBlockingQueue&lt;&gt;(10),
+
+
+
+            new ThreadFactoryBuilder().setNameFormat(&quot;demo-threadpool-%d&quot;).get(),
+
+
+
+            new ThreadPoolExecutor.AbortPolicy());
+
+
+
+    printStats(threadPool);
+
+
+
+    //每隔1秒提交一次，一共提交20次任务
+
+
+
+    IntStream.rangeClosed(1, 20).forEach(i -&gt; {
+
+
+
+        try {
+
+
+
+            TimeUnit.SECONDS.sleep(1);
+
+
+
+        } catch (InterruptedException e) {
+
+
+
+            e.printStackTrace();
+
+
+
+        }
+
+
+
+        int id = atomicInteger.incrementAndGet();
+
+
+
+        try {
+
+
+
+            threadPool.submit(() -&gt; {
+
+
+
+                log.info(&quot;{} started&quot;, id);
+
+
+
+                //每个任务耗时10秒
+
+
+
+                try {
+
+
+
+                    TimeUnit.SECONDS.sleep(10);
+
+
+
+                } catch (InterruptedException e) {
+
+
+
+                }
+
+
+
+                log.info(&quot;{} finished&quot;, id);
+
+
+
+            });
+
+
+
+        } catch (Exception ex) {
+
+
+
+            //提交出现异常的话，打印出错信息并为计数器减一
+
+
+
+            log.error(&quot;error submitting task {}&quot;, id, ex);
+
+
+
+            atomicInteger.decrementAndGet();
+
+
+
+        }
+
+
+
+    });
+
+
+
+    TimeUnit.SECONDS.sleep(60);
+
+
+
+    return atomicInteger.intValue();
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>60 秒后页面输出了 17，有 3 次提交失败了：</p>
+
+                            <p><img src="assets/4b820e0b24ce0deefbf2dd7af295c32c.png" alt="img" /></p>
+
+                            <p>并且日志中也出现了 3 次类似的错误信息：</p>
+
+                            <pre><code>[14:24:52.879] [http-nio-45678-exec-1] [ERROR] [.t.c.t.demo1.ThreadPoolOOMController:103 ] - error submitting task 18
+
+
+
+java.util.concurrent.RejectedExecutionException: Task <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="107a7166713e6564797c3e737f7e73656262757e643e5665646562754471637b502126237122747573">[email&#160;protected]</a> rejected from <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="452f2433246b30312c296b262a2b26303737202b316b112d37202421152a2a29003d202630312a3705747d757374242177">[email&#160;protected]</a>[Running, pool size = 5, active threads = 5, queued tasks = 10, completed tasks = 2]
+
+
+
+</code></pre>
+
+                            <p>我们把 printStats 方法打印出的日志绘制成图表，得出如下曲线：</p>
+
+                            <p><img src="assets/d819035f60bf1c0022a98051d50e031e.png" alt="img" /></p>
+
+                            <p>至此，我们可以总结出线程池默认的工作行为：</p>
+
+                            <p>不会初始化 corePoolSize 个线程，有任务来了才创建工作线程；</p>
+
+                            <p>当核心线程满了之后不会立即扩容线程池，而是把任务堆积到工作队列中；</p>
+
+                            <p>当工作队列满了后扩容线程池，一直到线程个数达到 maximumPoolSize 为止；</p>
+
+                            <p>如果队列已满且达到了最大线程后还有任务进来，按照拒绝策略处理；</p>
+
+                            <p>当线程数大于核心线程数时，线程等待 keepAliveTime 后还是没有任务需要处理的话，收缩线程到核心线程数。</p>
+
+                            <p>了解这个策略，有助于我们根据实际的容量规划需求，为线程池设置合适的初始化参数。当然，我们也可以通过一些手段来改变这些默认工作行为，比如：</p>
+
+                            <p>声明线程池后立即调用 prestartAllCoreThreads 方法，来启动所有核心线程；</p>
+
+                            <p>传入 true 给 allowCoreThreadTimeOut 方法，来让线程池在空闲的时候同样回收核心线程。</p>
+
+                            <p>不知道你有没有想过：Java 线程池是先用工作队列来存放来不及处理的任务，满了之后再扩容线程池。当我们的工作队列设置得很大时，最大线程数这个参数显得没有意义，因为队列很难满，或者到满的时候再去扩容线程池已经于事无补了。</p>
+
+                            <p>那么，我们有没有办法让线程池更激进一点，优先开启更多的线程，而把队列当成一个后备方案呢？比如我们这个例子，任务执行得很慢，需要 10 秒，如果线程池可以优先扩容到 5 个最大线程，那么这些任务最终都可以完成，而不会因为线程池扩容过晚导致慢任务来不及处理。</p>
+
+                            <p>限于篇幅，这里我只给你一个大致思路：</p>
+
+                            <p>由于线程池在工作队列满了无法入队的情况下会扩容线程池，那么我们是否可以重写队列的 offer 方法，造成这个队列已满的假象呢？</p>
+
+                            <p>由于我们 Hack 了队列，在达到了最大线程后势必会触发拒绝策略，那么能否实现一个自定义的拒绝策略处理程序，这个时候再把任务真正插入队列呢？</p>
+
+                            <p>接下来，就请你动手试试看如何实现这样一个“弹性”线程池吧。Tomcat 线程池也实现了类似的效果，可供你借鉴。</p>
+
+                            <h2>务必确认清楚线程池本身是不是复用的</h2>
+
+                            <p>不久之前我遇到了这样一个事故：某项目生产环境时不时有报警提示线程数过多，超过 2000 个，收到报警后查看监控发现，瞬时线程数比较多但过一会儿又会降下来，线程数抖动很厉害，而应用的访问量变化不大。</p>
+
+                            <p>为了定位问题，我们在线程数比较高的时候进行线程栈抓取，抓取后发现内存中有 1000 多个自定义线程池。一般而言，线程池肯定是复用的，有 5 个以内的线程池都可以认为正常，而 1000 多个线程池肯定不正常。</p>
+
+                            <p>在项目代码里，我们没有搜到声明线程池的地方，搜索 execute 关键字后定位到，原来是业务代码调用了一个类库来获得线程池，类似如下的业务代码：调用 ThreadPoolHelper 的 getThreadPool 方法来获得线程池，然后提交数个任务到线程池处理，看不出什么异常。</p>
+
+                            <pre><code>@GetMapping(&quot;wrong&quot;)
+
+
+
+public String wrong() throws InterruptedException {
+
+
+
+    ThreadPoolExecutor threadPool = ThreadPoolHelper.getThreadPool();
+
+
+
+    IntStream.rangeClosed(1, 10).forEach(i -&gt; {
+
+
+
+        threadPool.execute(() -&gt; {
+
+
+
+            ...
+
+
+
+            try {
+
+
+
+                TimeUnit.SECONDS.sleep(1);
+
+
+
+            } catch (InterruptedException e) {
+
+
+
+            }
+
+
+
+        });
+
+
+
+    });
+
+
+
+    return &quot;OK&quot;;
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>但是，来到 ThreadPoolHelper 的实现让人大跌眼镜，getThreadPool 方法居然是每次都使用 Executors.newCachedThreadPool 来创建一个线程池。</p>
+
+                            <pre><code>class ThreadPoolHelper {
+
+
+
+    public static ThreadPoolExecutor getThreadPool() {
+
+
+
+        //线程池没有复用
+
+
+
+        return (ThreadPoolExecutor) Executors.newCachedThreadPool();
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>通过上一小节的学习，我们可以想到 newCachedThreadPool 会在需要时创建必要多的线程，业务代码的一次业务操作会向线程池提交多个慢任务，这样执行一次业务操作就会开启多个线程。如果业务操作并发量较大的话，的确有可能一下子开启几千个线程。</p>
+
+                            <p>那，为什么我们能在监控中看到线程数量会下降，而不会撑爆内存呢？</p>
+
+                            <p>回到 newCachedThreadPool 的定义就会发现，它的核心线程数是 0，而 keepAliveTime 是 60 秒，也就是在 60 秒之后所有的线程都是可以回收的。好吧，就因为这个特性，我们的业务程序死得没太难看。</p>
+
+                            <p>要修复这个 Bug 也很简单，使用一个静态字段来存放线程池的引用，返回线程池的代码直接返回这个静态字段即可。这里一定要记得我们的最佳实践，手动创建线程池。修复后的 ThreadPoolHelper 类如下：</p>
+
+                            <pre><code>class ThreadPoolHelper {
+
+
+
+  private static ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+
+
+
+    10, 50,
+
+
+
+    2, TimeUnit.SECONDS,
+
+
+
+    new ArrayBlockingQueue&lt;&gt;(1000),
+
+
+
+    new ThreadFactoryBuilder().setNameFormat(&quot;demo-threadpool-%d&quot;).get());
+
+
+
+  public static ThreadPoolExecutor getRightThreadPool() {
+
+
+
+    return threadPoolExecutor;
+
+
+
+  }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <h2>需要仔细斟酌线程池的混用策略</h2>
+
+                            <p>线程池的意义在于复用，那这是不是意味着程序应该始终使用一个线程池呢？</p>
+
+                            <p>当然不是。通过第一小节的学习我们知道，要根据任务的“轻重缓急”来指定线程池的核心参数，包括线程数、回收策略和任务队列：</p>
+
+                            <p>对于执行比较慢、数量不大的 IO 任务，或许要考虑更多的线程数，而不需要太大的队列。</p>
+
+                            <p>而对于吞吐量较大的计算型任务，线程数量不宜过多，可以是 CPU 核数或核数 *2（理由是，线程一定调度到某个 CPU 进行执行，如果任务本身是 CPU 绑定的任务，那么过多的线程只会增加线程切换的开销，并不能提升吞吐量），但可能需要较长的队列来做缓冲。</p>
+
+                            <p>之前我也遇到过这么一个问题，业务代码使用了线程池异步处理一些内存中的数据，但通过监控发现处理得非常慢，整个处理过程都是内存中的计算不涉及 IO 操作，也需要数秒的处理时间，应用程序 CPU 占用也不是特别高，有点不可思议。</p>
+
+                            <p>经排查发现，业务代码使用的线程池，还被一个后台的文件批处理任务用到了。</p>
+
+                            <p>或许是够用就好的原则，这个线程池只有 2 个核心线程，最大线程也是 2，使用了容量为 100 的 ArrayBlockingQueue 作为工作队列，使用了 CallerRunsPolicy 拒绝策略：</p>
+
+                            <pre><code>private static ThreadPoolExecutor threadPool = new ThreadPoolExecutor(
+
+
+
+        2, 2,
+
+
+
+        1, TimeUnit.HOURS,
+
+
+
+        new ArrayBlockingQueue&lt;&gt;(100),
+
+
+
+        new ThreadFactoryBuilder().setNameFormat(&quot;batchfileprocess-threadpool-%d&quot;).get(),
+
+
+
+        new ThreadPoolExecutor.CallerRunsPolicy());
+
+
+
+</code></pre>
+
+                            <p>这里，我们模拟一下文件批处理的代码，在程序启动后通过一个线程开启死循环逻辑，不断向线程池提交任务，任务的逻辑是向一个文件中写入大量的数据：</p>
+
+                            <pre><code>@PostConstruct
+
+
+
+public void init() {
+
+
+
+    printStats(threadPool);
+
+
+
+    new Thread(() -&gt; {
+
+
+
+        //模拟需要写入的大量数据
+
+
+
+        String payload = IntStream.rangeClosed(1, 1_000_000)
+
+
+
+                .mapToObj(__ -&gt; &quot;a&quot;)
+
+
+
+                .collect(Collectors.joining(&quot;&quot;));
+
+
+
+        while (true) {
+
+
+
+            threadPool.execute(() -&gt; {
+
+
+
+                try {
+
+
+
+                    //每次都是创建并写入相同的数据到相同的文件
+
+
+
+                    Files.write(Paths.get(&quot;demo.txt&quot;), Collections.singletonList(LocalTime.now().toString() + &quot;:&quot; + payload), UTF_8, CREATE, TRUNCATE_EXISTING);
+
+
+
+                } catch (IOException e) {
+
+
+
+                    e.printStackTrace();
+
+
+
+                }
+
+
+
+                log.info(&quot;batch file processing done&quot;);
+
+
+
+            });
+
+
+
+        }
+
+
+
+    }).start();
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>可以想象到，这个线程池中的 2 个线程任务是相当重的。通过 printStats 方法打印出的日志，我们观察下线程池的负担：</p>
+
+                            <p><img src="assets/49c132595db60f109530e0dec55ccd55.png" alt="img" /></p>
+
+                            <p>可以看到，线程池的 2 个线程始终处于活跃状态，队列也基本处于打满状态。因为开启了 CallerRunsPolicy 拒绝处理策略，所以当线程满载队列也满的情况下，任务会在提交任务的线程，或者说调用 execute 方法的线程执行，也就是说不能认为提交到线程池的任务就一定是异步处理的。如果使用了 CallerRunsPolicy 策略，那么有可能异步任务变为同步执行。从日志的第四行也可以看到这点。这也是这个拒绝策略比较特别的原因。</p>
+
+                            <p>不知道写代码的同学为什么设置这个策略，或许是测试时发现线程池因为任务处理不过来出现了异常，而又不希望线程池丢弃任务，所以最终选择了这样的拒绝策略。不管怎样，这些日志足以说明线程池是饱和状态。</p>
+
+                            <p>可以想象到，业务代码复用这样的线程池来做内存计算，命运一定是悲惨的。我们写一段代码测试下，向线程池提交一个简单的任务，这个任务只是休眠 10 毫秒没有其他逻辑：</p>
+
+                            <pre><code>private Callable&lt;Integer&gt; calcTask() {
+
+
+
+    return () -&gt; {
+
+
+
+        TimeUnit.MILLISECONDS.sleep(10);
+
+
+
+        return 1;
+
+
+
+    };
+
+
+
+}
+
+
+
+@GetMapping(&quot;wrong&quot;)
+
+
+
+public int wrong() throws ExecutionException, InterruptedException {
+
+
+
+    return threadPool.submit(calcTask()).get();
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>我们使用 wrk 工具对这个接口进行一个简单的压测，可以看到 TPS 为 75，性能的确非常差。</p>
+
+                            <p><img src="assets/989f7ab383e59e21751adb77a9b53507.png" alt="img" /></p>
+
+                            <p>细想一下，问题其实没有这么简单。因为原来执行 IO 任务的线程池使用的是 CallerRunsPolicy 策略，所以直接使用这个线程池进行异步计算的话，当线程池饱和的时候，计算任务会在执行 Web 请求的 Tomcat 线程执行，这时就会进一步影响到其他同步处理的线程，甚至造成整个应用程序崩溃。</p>
+
+                            <p>解决方案很简单，使用独立的线程池来做这样的“计算任务”即可。计算任务打了双引号，是因为我们的模拟代码执行的是休眠操作，并不属于 CPU 绑定的操作，更类似 IO 绑定的操作，如果线程池线程数设置太小会限制吞吐能力：</p>
+
+                            <pre><code>private static ThreadPoolExecutor asyncCalcThreadPool = new ThreadPoolExecutor(
+
+
+
+  200, 200,
+
+
+
+  1, TimeUnit.HOURS,
+
+
+
+  new ArrayBlockingQueue&lt;&gt;(1000),
+
+
+
+  new ThreadFactoryBuilder().setNameFormat(&quot;asynccalc-threadpool-%d&quot;).get());
+
+
+
+
+
+
+
+@GetMapping(&quot;right&quot;)
+
+
+
+public int right() throws ExecutionException, InterruptedException {
+
+
+
+  return asyncCalcThreadPool.submit(calcTask()).get();
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>使用单独的线程池改造代码后再来测试一下性能，TPS 提高到了 1727：</p>
+
+                            <p><img src="assets/c21eed38ccd18758d38745dd09496a06.png" alt="img" /></p>
+
+                            <p>可以看到，盲目复用线程池混用线程的问题在于，别人定义的线程池属性不一定适合你的任务，而且混用会相互干扰。这就好比，我们往往会用虚拟化技术来实现资源的隔离，而不是让所有应用程序都直接使用物理机。</p>
+
+                            <p>就线程池混用问题，我想再和你补充一个坑：Java 8 的 parallel stream 功能，可以让我们很方便地并行处理集合中的元素，其背后是共享同一个 ForkJoinPool，默认并行度是 CPU 核数 -1。对于 CPU 绑定的任务来说，使用这样的配置比较合适，但如果集合操作涉及同步 IO 操作的话（比如数据库操作、外部服务调用等），建议自定义一个 ForkJoinPool（或普通线程池）。你可以参考第一讲的相关 Demo。</p>
+
+                            <h2>重点回顾</h2>
+
+                            <p>线程池管理着线程，线程又属于宝贵的资源，有许多应用程序的性能问题都来自线程池的配置和使用不当。在今天的学习中，我通过三个和线程池相关的生产事故，和你分享了使用线程池的几个最佳实践。</p>
+
+                            <p>第一，Executors 类提供的一些快捷声明线程池的方法虽然简单，但隐藏了线程池的参数细节。因此，使用线程池时，我们一定要根据场景和需求配置合理的线程数、任务队列、拒绝策略、线程回收策略，并对线程进行明确的命名方便排查问题。</p>
+
+                            <p>第二，既然使用了线程池就需要确保线程池是在复用的，每次 new 一个线程池出来可能比不用线程池还糟糕。如果你没有直接声明线程池而是使用其他同学提供的类库来获得一个线程池，请务必查看源码，以确认线程池的实例化方式和配置是符合预期的。</p>
+
+                            <p>第三，复用线程池不代表应用程序始终使用同一个线程池，我们应该根据任务的性质来选用不同的线程池。特别注意 IO 绑定的任务和 CPU 绑定的任务对于线程池属性的偏好，如果希望减少任务间的相互干扰，考虑按需使用隔离的线程池。</p>
+
+                            <p>最后我想强调的是，线程池作为应用程序内部的核心组件往往缺乏监控（如果你使用类似 RabbitMQ 这样的 MQ 中间件，运维同学一般会帮我们做好中间件监控），往往到程序崩溃后才发现线程池的问题，很被动。在设计篇中我们会重新谈及这个问题及其解决方案。</p>
+
+                            <p>今天用到的代码，我都放在了 GitHub 上，你可以点击这个链接查看。</p>
+
+                            <h2>思考与讨论</h2>
+
+                            <p>在第一节中我们提到，或许一个激进创建线程的弹性线程池更符合我们的需求，你能给出相关的实现吗？实现后再测试一下，是否所有的任务都可以正常处理完成呢？</p>
+
+                            <p>在第二节中，我们改进了 ThreadPoolHelper 使其能够返回复用的线程池。如果我们不小心每次都创建了这样一个自定义的线程池（10 核心线程，50 最大线程，2 秒回收的），反复执行测试接口线程，最终可以被回收吗？会出现 OOM 问题吗？</p>
+
+                            <p>你还遇到过线程池相关的其他坑吗？我是朱晔，欢迎在评论区与我留言分享你的想法，也欢迎你把这篇文章分享给你的朋友或同事，一起交流。</p>
+
+                        </div>
+
+                    </div>
+                    <div class="book-post">
+
+                        <p id="tip" align="center"></p>
+
+                        <div><h1>04 连接池：别让连接池帮了倒忙</h1>
+
+                            <p>你好，我是朱晔。今天，我们来聊聊使用连接池需要注意的问题。</p>
+
+                            <p>在上一讲，我们学习了使用线程池需要注意的问题。今天，我再与你说说另一种很重要的池化技术，即连接池。</p>
+
+                            <p>我先和你说说连接池的结构。连接池一般对外提供获得连接、归还连接的接口给客户端使用，并暴露最小空闲连接数、最大连接数等可配置参数，在内部则实现连接建立、连接心跳保持、连接管理、空闲连接回收、连接可用性检测等功能。连接池的结构示意图，如下所示：</p>
+
+                            <p><img src="assets/1685d9db2602e1de8483de171af6fd7e.png" alt="img" /></p>
+
+                            <p>业务项目中经常会用到的连接池，主要是数据库连接池、Redis 连接池和 HTTP 连接池。所以，今天我就以这三种连接池为例，和你聊聊使用和配置连接池容易出错的地方。</p>
+
+                            <h2>注意鉴别客户端 SDK 是否基于连接池</h2>
+
+                            <p>在使用三方客户端进行网络通信时，我们首先要确定客户端 SDK 是否是基于连接池技术实现的。我们知道，TCP 是面向连接的基于字节流的协议：</p>
+
+                            <p>面向连接，意味着连接需要先创建再使用，创建连接的三次握手有一定开销；</p>
+
+                            <p>基于字节流，意味着字节是发送数据的最小单元，TCP 协议本身无法区分哪几个字节是完整的消息体，也无法感知是否有多个客户端在使用同一个 TCP 连接，TCP 只是一个读写数据的管道。</p>
+
+                            <p>如果客户端 SDK 没有使用连接池，而直接是 TCP 连接，那么就需要考虑每次建立 TCP 连接的开销，并且因为 TCP 基于字节流，在多线程的情况下对同一连接进行复用，可能会产生线程安全问题。</p>
+
+                            <p>我们先看一下涉及 TCP 连接的客户端 SDK，对外提供 API 的三种方式。在面对各种三方客户端的时候，只有先识别出其属于哪一种，才能理清楚使用方式。</p>
+
+                            <p>连接池和连接分离的 API：有一个 XXXPool 类负责连接池实现，先从其获得连接 XXXConnection，然后用获得的连接进行服务端请求，完成后使用者需要归还连接。通常，XXXPool 是线程安全的，可以并发获取和归还连接，而 XXXConnection 是非线程安全的。对应到连接池的结构示意图中，XXXPool 就是右边连接池那个框，左边的客户端是我们自己的代码。</p>
+
+                            <p>内部带有连接池的 API：对外提供一个 XXXClient 类，通过这个类可以直接进行服务端请求；这个类内部维护了连接池，SDK 使用者无需考虑连接的获取和归还问题。一般而言，XXXClient 是线程安全的。对应到连接池的结构示意图中，整个 API 就是蓝色框包裹的部分。</p>
+
+                            <p>非连接池的 API：一般命名为 XXXConnection，以区分其是基于连接池还是单连接的，而不建议命名为 XXXClient 或直接是 XXX。直接连接方式的 API 基于单一连接，每次使用都需要创建和断开连接，性能一般，且通常不是线程安全的。对应到连接池的结构示意图中，这种形式相当于没有右边连接池那个框，客户端直接连接服务端创建连接。</p>
+
+                            <p>虽然上面提到了 SDK 一般的命名习惯，但不排除有一些客户端特立独行，因此在使用三方 SDK 时，一定要先查看官方文档了解其最佳实践，或是在类似 Stackoverflow 的网站搜索 XXX threadsafe/singleton 字样看看大家的回复，也可以一层一层往下看源码，直到定位到原始 Socket 来判断 Socket 和客户端 API 的对应关系。</p>
+
+                            <p>明确了 SDK 连接池的实现方式后，我们就大概知道了使用 SDK 的最佳实践：</p>
+
+                            <p>如果是分离方式，那么连接池本身一般是线程安全的，可以复用。每次使用需要从连接池获取连接，使用后归还，归还的工作由使用者负责。</p>
+
+                            <p>如果是内置连接池，SDK 会负责连接的获取和归还，使用的时候直接复用客户端。</p>
+
+                            <p>如果 SDK 没有实现连接池（大多数中间件、数据库的客户端 SDK 都会支持连接池），那通常不是线程安全的，而且短连接的方式性能不会很高，使用的时候需要考虑是否自己封装一个连接池。</p>
+
+                            <p>接下来，我就以 Java 中用于操作 Redis 最常见的库 Jedis 为例，从源码角度分析下 Jedis 类到底属于哪种类型的 API，直接在多线程环境下复用一个连接会产生什么问题，以及如何用最佳实践来修复这个问题。</p>
+
+                            <p>首先，向 Redis 初始化 2 组数据，Key=a、Value=1，Key=b、Value=2：</p>
+
+                            <pre><code>@PostConstruct
+
+
+
+public void init() {
+
+
+
+    try (Jedis jedis = new Jedis(&quot;127.0.0.1&quot;, 6379)) {
+
+
+
+        Assert.isTrue(&quot;OK&quot;.equals(jedis.set(&quot;a&quot;, &quot;1&quot;)), &quot;set a = 1 return OK&quot;);
+
+
+
+        Assert.isTrue(&quot;OK&quot;.equals(jedis.set(&quot;b&quot;, &quot;2&quot;)), &quot;set b = 2 return OK&quot;);
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>然后，启动两个线程，共享操作同一个 Jedis 实例，每一个线程循环 1000 次，分别读取 Key 为 a 和 b 的 Value，判断是否分别为 1 和 2：</p>
+
+                            <pre><code>Jedis jedis = new Jedis(&quot;127.0.0.1&quot;, 6379);
+
+
+
+new Thread(() -&gt; {
+
+
+
+    for (int i = 0; i &lt; 1000; i++) {
+
+
+
+        String result = jedis.get(&quot;a&quot;);
+
+
+
+        if (!result.equals(&quot;1&quot;)) {
+
+
+
+            log.warn(&quot;Expect a to be 1 but found {}&quot;, result);
+
+
+
+            return;
+
+
+
+        }
+
+
+
+    }
+
+
+
+}).start();
+
+
+
+new Thread(() -&gt; {
+
+
+
+    for (int i = 0; i &lt; 1000; i++) {
+
+
+
+        String result = jedis.get(&quot;b&quot;);
+
+
+
+        if (!result.equals(&quot;2&quot;)) {
+
+
+
+            log.warn(&quot;Expect b to be 2 but found {}&quot;, result);
+
+
+
+            return;
+
+
+
+        }
+
+
+
+    }
+
+
+
+}).start();
+
+
+
+TimeUnit.SECONDS.sleep(5);
+
+
+
+</code></pre>
+
+                            <p>执行程序多次，可以看到日志中出现了各种奇怪的异常信息，有的是读取 Key 为 b 的 Value 读取到了 1，有的是流非正常结束，还有的是连接关闭异常：</p>
+
+                            <pre><code>//错误1
+
+
+
+[14:56:19.069] [Thread-28] [WARN ] [.t.c.c.redis.JedisMisreuseController:45  ] - Expect b to be 2 but found 1
+
+
+
+//错误2
+
+
+
+redis.clients.jedis.exceptions.JedisConnectionException: Unexpected end of stream.
+
+
+
+  at redis.clients.jedis.util.RedisInputStream.ensureFill(RedisInputStream.java:202)
+
+
+
+  at redis.clients.jedis.util.RedisInputStream.readLine(RedisInputStream.java:50)
+
+
+
+  at redis.clients.jedis.Protocol.processError(Protocol.java:114)
+
+
+
+  at redis.clients.jedis.Protocol.process(Protocol.java:166)
+
+
+
+  at redis.clients.jedis.Protocol.read(Protocol.java:220)
+
+
+
+  at redis.clients.jedis.Connection.readProtocolWithCheckingBroken(Connection.java:318)
+
+
+
+  at redis.clients.jedis.Connection.getBinaryBulkReply(Connection.java:255)
+
+
+
+  at redis.clients.jedis.Connection.getBulkReply(Connection.java:245)
+
+
+
+  at redis.clients.jedis.Jedis.get(Jedis.java:181)
+
+
+
+  at org.geekbang.time.commonmistakes.connectionpool.redis.JedisMisreuseController.lambda$wrong$1(JedisMisreuseController.java:43)
+
+
+
+  at java.lang.Thread.run(Thread.java:748)
+
+
+
+//错误3
+
+
+
+java.io.IOException: Socket Closed
+
+
+
+  at java.net.AbstractPlainSocketImpl.getOutputStream(AbstractPlainSocketImpl.java:440)
+
+
+
+  at java.net.Socket$3.run(Socket.java:954)
+
+
+
+  at java.net.Socket$3.run(Socket.java:952)
+
+
+
+  at java.security.AccessController.doPrivileged(Native Method)
+
+
+
+  at java.net.Socket.getOutputStream(Socket.java:951)
+
+
+
+  at redis.clients.jedis.Connection.connect(Connection.java:200)
+
+
+
+  ... 7 more
+
+
+
+</code></pre>
+
+                            <p>让我们分析一下 Jedis 类的源码，搞清楚其中缘由吧。</p>
+
+                            <pre><code>public class Jedis extends BinaryJedis implements JedisCommands, MultiKeyCommands,
+
+
+
+    AdvancedJedisCommands, ScriptingCommands, BasicCommands, ClusterCommands, SentinelCommands, ModuleCommands {
+
+
+
+}
+
+
+
+public class BinaryJedis implements BasicCommands, BinaryJedisCommands, MultiKeyBinaryCommands,
+
+
+
+    AdvancedBinaryJedisCommands, BinaryScriptingCommands, Closeable {
+
+
+
+  protected Client client = null;
+
+
+
+      ...
+
+
+
+}
+
+
+
+public class Client extends BinaryClient implements Commands {
+
+
+
+}
+
+
+
+public class BinaryClient extends Connection {
+
+
+
+}
+
+
+
+public class Connection implements Closeable {
+
+
+
+  private Socket socket;
+
+
+
+  private RedisOutputStream outputStream;
+
+
+
+  private RedisInputStream inputStream;
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>可以看到，Jedis 继承了 BinaryJedis，BinaryJedis 中保存了单个 Client 的实例，Client 最终继承了 Connection，Connection 中保存了单个 Socket 的实例，和 Socket 对应的两个读写流。因此，一个 Jedis 对应一个 Socket 连接。类图如下：</p>
+
+                            <p><img src="assets/e72120b1f6daf4a951e75c05b9191a0f.png" alt="img" /></p>
+
+                            <p>BinaryClient 封装了各种 Redis 命令，其最终会调用基类 Connection 的方法，使用 Protocol 类发送命令。看一下 Protocol 类的 sendCommand 方法的源码，可以发现其发送命令时是直接操作 RedisOutputStream 写入字节。</p>
+
+                            <p>我们在多线程环境下复用 Jedis 对象，其实就是在复用 RedisOutputStream。如果多个线程在执行操作，那么既无法确保整条命令以一个原子操作写入 Socket，也无法确保写入后、读取前没有其他数据写到远端：</p>
+
+                            <pre><code>private static void sendCommand(final RedisOutputStream os, final byte[] command,
+
+
+
+    final byte[]... args) {
+
+
+
+  try {
+
+
+
+    os.write(ASTERISK_BYTE);
+
+
+
+    os.writeIntCrLf(args.length + 1);
+
+
+
+    os.write(DOLLAR_BYTE);
+
+
+
+    os.writeIntCrLf(command.length);
+
+
+
+    os.write(command);
+
+
+
+    os.writeCrLf();
+
+
+
+
+
+
+
+    for (final byte[] arg : args) {
+
+
+
+      os.write(DOLLAR_BYTE);
+
+
+
+      os.writeIntCrLf(arg.length);
+
+
+
+      os.write(arg);
+
+
+
+      os.writeCrLf();
+
+
+
+    }
+
+
+
+  } catch (IOException e) {
+
+
+
+    throw new JedisConnectionException(e);
+
+
+
+  }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>看到这里我们也可以理解了，为啥多线程情况下使用 Jedis 对象操作 Redis 会出现各种奇怪的问题。</p>
+
+                            <p>比如，写操作互相干扰，多条命令相互穿插的话，必然不是合法的 Redis 命令，那么 Redis 会关闭客户端连接，导致连接断开；又比如，线程 1 和 2 先后写入了 get a 和 get b 操作的请求，Redis 也返回了值 1 和 2，但是线程 2 先读取了数据 1 就会出现数据错乱的问题。</p>
+
+                            <p>修复方式是，使用 Jedis 提供的另一个线程安全的类 JedisPool 来获得 Jedis 的实例。JedisPool 可以声明为 static 在多个线程之间共享，扮演连接池的角色。使用时，按需使用 try-with-resources 模式从 JedisPool 获得和归还 Jedis 实例。</p>
+
+                            <pre><code>private static JedisPool jedisPool = new JedisPool(&quot;127.0.0.1&quot;, 6379);
+
+
+
+new Thread(() -&gt; {
+
+
+
+    try (Jedis jedis = jedisPool.getResource()) {
+
+
+
+        for (int i = 0; i &lt; 1000; i++) {
+
+
+
+            String result = jedis.get(&quot;a&quot;);
+
+
+
+            if (!result.equals(&quot;1&quot;)) {
+
+
+
+                log.warn(&quot;Expect a to be 1 but found {}&quot;, result);
+
+
+
+                return;
+
+
+
+            }
+
+
+
+        }
+
+
+
+    }
+
+
+
+}).start();
+
+
+
+new Thread(() -&gt; {
+
+
+
+    try (Jedis jedis = jedisPool.getResource()) {
+
+
+
+        for (int i = 0; i &lt; 1000; i++) {
+
+
+
+            String result = jedis.get(&quot;b&quot;);
+
+
+
+            if (!result.equals(&quot;2&quot;)) {
+
+
+
+                log.warn(&quot;Expect b to be 2 but found {}&quot;, result);
+
+
+
+                return;
+
+
+
+            }
+
+
+
+        }
+
+
+
+    }
+
+
+
+}).start();
+
+
+
+</code></pre>
+
+                            <p>这样修复后，代码不再有线程安全问题了。此外，我们最好通过 shutdownhook，在程序退出之前关闭 JedisPool：</p>
+
+                            <pre><code>@PostConstruct
+
+
+
+public void init() {
+
+
+
+    Runtime.getRuntime().addShutdownHook(new Thread(() -&gt; {
+
+
+
+        jedisPool.close();
+
+
+
+    }));
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>看一下 Jedis 类 close 方法的实现可以发现，如果 Jedis 是从连接池获取的话，那么 close 方法会调用连接池的 return 方法归还连接：</p>
+
+                            <pre><code>public class Jedis extends BinaryJedis implements JedisCommands, MultiKeyCommands,
+
+
+
+    AdvancedJedisCommands, ScriptingCommands, BasicCommands, ClusterCommands, SentinelCommands, ModuleCommands {
+
+
+
+  protected JedisPoolAbstract dataSource = null;
+
+
+
+
+
+
+
+  @Override
+
+
+
+  public void close() {
+
+
+
+    if (dataSource != null) {
+
+
+
+      JedisPoolAbstract pool = this.dataSource;
+
+
+
+      this.dataSource = null;
+
+
+
+      if (client.isBroken()) {
+
+
+
+        pool.returnBrokenResource(this);
+
+
+
+      } else {
+
+
+
+        pool.returnResource(this);
+
+
+
+      }
+
+
+
+    } else {
+
+
+
+      super.close();
+
+
+
+    }
+
+
+
+  }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>如果不是，则直接关闭连接，其最终调用 Connection 类的 disconnect 方法来关闭 TCP 连接：</p>
+
+                            <pre><code>public void disconnect() {
+
+
+
+  if (isConnected()) {
+
+
+
+    try {
+
+
+
+      outputStream.flush();
+
+
+
+      socket.close();
+
+
+
+    } catch (IOException ex) {
+
+
+
+      broken = true;
+
+
+
+      throw new JedisConnectionException(ex);
+
+
+
+    } finally {
+
+
+
+      IOUtils.closeQuietly(socket);
+
+
+
+    }
+
+
+
+  }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>可以看到，Jedis 可以独立使用，也可以配合连接池使用，这个连接池就是 JedisPool。我们再看看 JedisPool 的实现。</p>
+
+                            <pre><code>public class JedisPool extends JedisPoolAbstract {
+
+
+
+@Override
+
+
+
+  public Jedis getResource() {
+
+
+
+    Jedis jedis = super.getResource();
+
+
+
+    jedis.setDataSource(this);
+
+
+
+    return jedis;
+
+
+
+  }
+
+
+
+  @Override
+
+
+
+  protected void returnResource(final Jedis resource) {
+
+
+
+    if (resource != null) {
+
+
+
+      try {
+
+
+
+        resource.resetState();
+
+
+
+        returnResourceObject(resource);
+
+
+
+      } catch (Exception e) {
+
+
+
+        returnBrokenResource(resource);
+
+
+
+        throw new JedisException(&quot;Resource is returned to the pool as broken&quot;, e);
+
+
+
+      }
+
+
+
+    }
+
+
+
+  }
+
+
+
+}
+
+
+
+public class JedisPoolAbstract extends Pool&lt;Jedis&gt; {
+
+
+
+}
+
+
+
+public abstract class Pool&lt;T&gt; implements Closeable {
+
+
+
+  protected GenericObjectPool&lt;T&gt; internalPool;
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>JedisPool 的 getResource 方法在拿到 Jedis 对象后，将自己设置为了连接池。连接池 JedisPool，继承了 JedisPoolAbstract，而后者继承了抽象类 Pool，Pool 内部维护了 Apache Common 的通用池 GenericObjectPool。JedisPool 的连接池就是基于 GenericObjectPool 的。</p>
+
+                            <p>看到这里我们了解了，Jedis 的 API 实现是我们说的三种类型中的第一种，也就是连接池和连接分离的 API，JedisPool 是线程安全的连接池，Jedis 是非线程安全的单一连接。知道了原理之后，我们再使用 Jedis 就胸有成竹了。</p>
+
+                            <h2>使用连接池务必确保复用</h2>
+
+                            <p>在介绍线程池的时候我们强调过，池一定是用来复用的，否则其使用代价会比每次创建单一对象更大。对连接池来说更是如此，原因如下：</p>
+
+                            <p>创建连接池的时候很可能一次性创建了多个连接，大多数连接池考虑到性能，会在初始化的时候维护一定数量的最小连接（毕竟初始化连接池的过程一般是一次性的），可以直接使用。如果每次使用连接池都按需创建连接池，那么很可能你只用到一个连接，但是创建了 N 个连接。</p>
+
+                            <p>连接池一般会有一些管理模块，也就是连接池的结构示意图中的绿色部分。举个例子，大多数的连接池都有闲置超时的概念。连接池会检测连接的闲置时间，定期回收闲置的连接，把活跃连接数降到最低（闲置）连接的配置值，减轻服务端的压力。一般情况下，闲置连接由独立线程管理，启动了空闲检测的连接池相当于还会启动一个线程。此外，有些连接池还需要独立线程负责连接保活等功能。因此，启动一个连接池相当于启动了 N 个线程。</p>
+
+                            <p>除了使用代价，连接池不释放，还可能会引起线程泄露。接下来，我就以 Apache HttpClient 为例，和你说说连接池不复用的问题。</p>
+
+                            <p>首先，创建一个 CloseableHttpClient，设置使用 PoolingHttpClientConnectionManager 连接池并启用空闲连接驱逐策略，最大空闲时间为 60 秒，然后使用这个连接来请求一个会返回 OK 字符串的服务端接口：</p>
+
+                            <pre><code>@GetMapping(&quot;wrong1&quot;)
+
+
+
+public String wrong1() {
+
+
+
+    CloseableHttpClient client = HttpClients.custom()
+
+
+
+            .setConnectionManager(new PoolingHttpClientConnectionManager())
+
+
+
+            .evictIdleConnections(60, TimeUnit.SECONDS).build();
+
+
+
+    try (CloseableHttpResponse response = client.execute(new HttpGet(&quot;http://127.0.0.1:45678/httpclientnotreuse/test&quot;))) {
+
+
+
+        return EntityUtils.toString(response.getEntity());
+
+
+
+    } catch (Exception ex) {
+
+
+
+        ex.printStackTrace();
+
+
+
+    }
+
+
+
+    return null;
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>访问这个接口几次后查看应用线程情况，可以看到有大量叫作 Connection evictor 的线程，且这些线程不会销毁：</p>
+
+                            <p><img src="assets/33a2389c20653e97b8157897d06c1510.png" alt="img" /></p>
+
+                            <p>对这个接口进行几秒的压测（压测使用 wrk，1 个并发 1 个连接）可以看到，已经建立了三千多个 TCP 连接到 45678 端口（其中有 1 个是压测客户端到 Tomcat 的连接，大部分都是 HttpClient 到 Tomcat 的连接）：</p>
+
+                            <p><img src="assets/54a71ee9a7bbbd5e121b12fe6289aff2.png" alt="img" /></p>
+
+                            <p>好在有了空闲连接回收的策略，60 秒之后连接处于 CLOSE_WAIT 状态，最终彻底关闭。</p>
+
+                            <p><img src="assets/8ea5f53e6510d76cf447c23fb15daa77.png" alt="img" /></p>
+
+                            <p>这 2 点证明，CloseableHttpClient 属于第二种模式，即内部带有连接池的 API，其背后是连接池，最佳实践一定是复用。</p>
+
+                            <p>复用方式很简单，你可以把 CloseableHttpClient 声明为 static，只创建一次，并且在 JVM 关闭之前通过 addShutdownHook 钩子关闭连接池，在使用的时候直接使用 CloseableHttpClient 即可，无需每次都创建。</p>
+
+                            <p>首先，定义一个 right 接口来实现服务端接口调用：</p>
+
+                            <pre><code>private static CloseableHttpClient httpClient = null;
+
+
+
+static {
+
+
+
+    //当然，也可以把CloseableHttpClient定义为Bean，然后在@PreDestroy标记的方法内close这个HttpClient
+
+
+
+    httpClient = HttpClients.custom().setMaxConnPerRoute(1).setMaxConnTotal(1).evictIdleConnections(60, TimeUnit.SECONDS).build();
+
+
+
+    Runtime.getRuntime().addShutdownHook(new Thread(() -&gt; {
+
+
+
+        try {
+
+
+
+            httpClient.close();
+
+
+
+        } catch (IOException ignored) {
+
+
+
+        }
+
+
+
+    }));
+
+
+
+}
+
+
+
+@GetMapping(&quot;right&quot;)
+
+
+
+public String right() {
+
+
+
+    try (CloseableHttpResponse response = httpClient.execute(new HttpGet(&quot;http://127.0.0.1:45678/httpclientnotreuse/test&quot;))) {
+
+
+
+        return EntityUtils.toString(response.getEntity());
+
+
+
+    } catch (Exception ex) {
+
+
+
+        ex.printStackTrace();
+
+
+
+    }
+
+
+
+    return null;
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>然后，重新定义一个 wrong2 接口，修复之前按需创建 CloseableHttpClient 的代码，每次用完之后确保连接池可以关闭：</p>
+
+                            <pre><code>@GetMapping(&quot;wrong2&quot;)
+
+
+
+public String wrong2() {
+
+
+
+    try (CloseableHttpClient client = HttpClients.custom()
+
+
+
+            .setConnectionManager(new PoolingHttpClientConnectionManager())
+
+
+
+            .evictIdleConnections(60, TimeUnit.SECONDS).build();
+
+
+
+         CloseableHttpResponse response = client.execute(new HttpGet(&quot;http://127.0.0.1:45678/httpclientnotreuse/test&quot;))) {
+
+
+
+            return EntityUtils.toString(response.getEntity());
+
+
+
+        } catch (Exception ex) {
+
+
+
+        ex.printStackTrace();
+
+
+
+    }
+
+
+
+    return null;
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>使用 wrk 对 wrong2 和 right 两个接口分别压测 60 秒，可以看到两种使用方式性能上的差异，每次创建连接池的 QPS 是 337，而复用连接池的 QPS 是 2022：</p>
+
+                            <p><img src="assets/b79fb99cf8a5c3a17e60b0850544472d.png" alt="img" /></p>
+
+                            <p>如此大的性能差异显然是因为 TCP 连接的复用。你可能注意到了，刚才定义连接池时，我将最大连接数设置为 1。所以，复用连接池方式复用的始终应该是同一个连接，而新建连接池方式应该是每次都会创建新的 TCP 连接。</p>
+
+                            <p>接下来，我们通过网络抓包工具 Wireshark 来证实这一点。</p>
+
+                            <p>如果调用 wrong2 接口每次创建新的连接池来发起 HTTP 请求，从 Wireshark 可以看到，每次请求服务端 45678 的客户端端口都是新的。这里我发起了三次请求，程序通过 HttpClient 访问服务端 45678 的客户端端口号，分别是 51677、51679 和 51681：</p>
+
+                            <p><img src="assets/7b8f651755cef0c05ecb08727d315e35.png" alt="img" /></p>
+
+                            <p>也就是说，每次都是新的 TCP 连接，放开 HTTP 这个过滤条件也可以看到完整的 TCP 握手、挥手的过程：</p>
+
+                            <p><img src="assets/4815c0edd21d5bf0cae8c0c3e578960d.png" alt="img" /></p>
+
+                            <p>而复用连接池方式的接口 right 的表现就完全不同了。可以看到，第二次 HTTP 请求 #41 的客户端端口 61468 和第一次连接 #23 的端口是一样的，Wireshark 也提示了整个 TCP 会话中，当前 #41 请求是第二次请求，前一次是 #23，后面一次是 #75：</p>
+
+                            <p><img src="assets/2cbada9be98ce33321b29d38adb09f2c.png" alt="img" /></p>
+
+                            <p>只有 TCP 连接闲置超过 60 秒后才会断开，连接池会新建连接。你可以尝试通过 Wireshark 观察这一过程。</p>
+
+                            <p>接下来，我们就继续聊聊连接池的配置问题。</p>
+
+                            <h2>连接池的配置不是一成不变的</h2>
+
+                            <p>为方便根据容量规划设置连接处的属性，连接池提供了许多参数，包括最小（闲置）连接、最大连接、闲置连接生存时间、连接生存时间等。其中，最重要的参数是最大连接数，它决定了连接池能使用的连接数量上限，达到上限后，新来的请求需要等待其他请求释放连接。</p>
+
+                            <p>但，最大连接数不是设置得越大越好。如果设置得太大，不仅仅是客户端需要耗费过多的资源维护连接，更重要的是由于服务端对应的是多个客户端，每一个客户端都保持大量的连接，会给服务端带来更大的压力。这个压力又不仅仅是内存压力，可以想一下如果服务端的网络模型是一个 TCP 连接一个线程，那么几千个连接意味着几千个线程，如此多的线程会造成大量的线程切换开销。</p>
+
+                            <p>当然，连接池最大连接数设置得太小，很可能会因为获取连接的等待时间太长，导致吞吐量低下，甚至超时无法获取连接。</p>
+
+                            <p>接下来，我们就模拟下压力增大导致数据库连接池打满的情况，来实践下如何确认连接池的使用情况，以及有针对性地进行参数优化。</p>
+
+                            <p>首先，定义一个用户注册方法，通过 @Transactional 注解为方法开启事务。其中包含了 500 毫秒的休眠，一个数据库事务对应一个 TCP 连接，所以 500 多毫秒的时间都会占用数据库连接：</p>
+
+                            <pre><code>@Transactional
+
+
+
+public User register(){
+
+
+
+    User user=new User();
+
+
+
+    user.setName(&quot;new-user-&quot;+System.currentTimeMillis());
+
+
+
+    userRepository.save(user);
+
+
+
+    try {
+
+
+
+        TimeUnit.MILLISECONDS.sleep(500);
+
+
+
+    } catch (InterruptedException e) {
+
+
+
+        e.printStackTrace();
+
+
+
+    }
+
+
+
+    return user;
+
+
+
+}
+
+</code></pre>
+
+                            <p>随后，修改配置文件启用 register-mbeans，使 Hikari 连接池能通过 JMX MBean 注册连接池相关统计信息，方便观察连接池：</p>
+
+                            <pre><code>spring.datasource.hikari.register-mbeans=true
+
+
+
+</code></pre>
+
+                            <p>启动程序并通过 JConsole 连接进程后，可以看到默认情况下最大连接数为 10：</p>
+
+                            <p><img src="assets/7b8e5aff5a3ef6ade1d8027c20c92f94.png" alt="img" /></p>
+
+                            <p>使用 wrk 对应用进行压测，可以看到连接数一下子从 0 到了 10，有 20 个线程在等待获取连接：</p>
+
+                            <p><img src="assets/b22169b8d8bbfabbb8b93ece11a1f9ef.png" alt="img" /></p>
+
+                            <p>不久就出现了无法获取数据库连接的异常，如下所示：</p>
+
+                            <pre><code>[15:37:56.156] [http-nio-45678-exec-15] [ERROR] [.a.c.c.C.[.[.[/].[dispatcherServlet]:175 ] - Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed; nested exception is org.springframework.dao.DataAccessResourceFailureException: unable to obtain isolated JDBC connection; nested exception is org.hibernate.exception.JDBCConnectionException: unable to obtain isolated JDBC connection] with root cause
+
+
+
+java.sql.SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 30000ms.
+
+
+
+</code></pre>
+
+                            <p>从异常信息中可以看到，数据库连接池是 HikariPool，解决方式很简单，修改一下配置文件，调整数据库连接池最大连接参数到 50 即可。</p>
+
+                            <pre><code>spring.datasource.hikari.maximum-pool-size=50
+
+
+
+</code></pre>
+
+                            <p>然后，再观察一下这个参数是否适合当前压力，满足需求的同时也不占用过多资源。从监控来看这个调整是合理的，有一半的富余资源，再也没有线程需要等待连接了：</p>
+
+                            <p><img src="assets/d24f23f05d49378a10a857cd8b9ef031.png" alt="img" /></p>
+
+                            <p>在这个 Demo 里，我知道压测大概能对应使用 25 左右的并发连接，所以直接把连接池最大连接设置为了 50。在真实情况下，只要数据库可以承受，你可以选择在遇到连接超限的时候先设置一个足够大的连接数，然后观察最终应用的并发，再按照实际并发数留出一半的余量来设置最终的最大连接。</p>
+
+                            <p>其实，看到错误日志后再调整已经有点儿晚了。更合适的做法是，对类似数据库连接池的重要资源进行持续检测，并设置一半的使用量作为报警阈值，出现预警后及时扩容。</p>
+
+                            <p>在这里我是为了演示，才通过 JConsole 查看参数配置后的效果，生产上需要把相关数据对接到指标监控体系中持续监测。</p>
+
+                            <p>这里要强调的是，修改配置参数务必验证是否生效，并且在监控系统中确认参数是否生效、是否合理。之所以要“强调”，是因为这里有坑。</p>
+
+                            <p>我之前就遇到过这样一个事故。应用准备针对大促活动进行扩容，把数据库配置文件中 Druid 连接池最大连接数 maxActive 从 50 提高到了 100，修改后并没有通过监控验证，结果大促当天应用因为连接池连接数不够爆了。</p>
+
+                            <p>经排查发现，当时修改的连接数并没有生效。原因是，应用虽然一开始使用的是 Druid 连接池，但后来框架升级了，把连接池替换为了 Hikari 实现，原来的那些配置其实都是无效的，修改后的参数配置当然也不会生效。</p>
+
+                            <p>所以说，对连接池进行调参，一定要眼见为实。</p>
+
+                            <h2>重点回顾</h2>
+
+                            <p>今天，我以三种业务代码最常用的 Redis 连接池、HTTP 连接池、数据库连接池为例，和你探讨了有关连接池实现方式、使用姿势和参数配置的三大问题。</p>
+
+                            <p>客户端 SDK 实现连接池的方式，包括池和连接分离、内部带有连接池和非连接池三种。要正确使用连接池，就必须首先鉴别连接池的实现方式。比如，Jedis 的 API 实现的是池和连接分离的方式，而 Apache HttpClient 是内置连接池的 API。</p>
+
+                            <p>对于使用姿势其实就是两点，一是确保连接池是复用的，二是尽可能在程序退出之前显式关闭连接池释放资源。连接池设计的初衷就是为了保持一定量的连接，这样连接可以随取随用。从连接池获取连接虽然很快，但连接池的初始化会比较慢，需要做一些管理模块的初始化以及初始最小闲置连接。一旦连接池不是复用的，那么其性能会比随时创建单一连接更差。</p>
+
+                            <p>最后，连接池参数配置中，最重要的是最大连接数，许多高并发应用往往因为最大连接数不够导致性能问题。但，最大连接数不是设置得越大越好，够用就好。需要注意的是，针对数据库连接池、HTTP 连接池、Redis 连接池等重要连接池，务必建立完善的监控和报警机制，根据容量规划及时调整参数配置。</p>
+
+                            <p>今天用到的代码，我都放在了 GitHub 上，你可以点击这个链接查看。</p>
+
+                            <h2>思考与讨论</h2>
+
+                            <p>有了连接池之后，获取连接是从连接池获取，没有足够连接时连接池会创建连接。这时，获取连接操作往往有两个超时时间：一个是从连接池获取连接的最长等待时间，通常叫作请求连接超时 connectRequestTimeout 或连接等待超时 connectWaitTimeout；一个是连接池新建 TCP 连接三次握手的连接超时，通常叫作连接超时 connectTimeout。针对 JedisPool、Apache HttpClient 和 Hikari 数据库连接池，你知道如何设置这 2 个参数吗？</p>
+
+                            <p>对于带有连接池的 SDK 的使用姿势，最主要的是鉴别其内部是否实现了连接池，如果实现了连接池要尽量复用 Client。对于 NoSQL 中的 MongoDB 来说，使用 MongoDB Java 驱动时，MongoClient 类应该是每次都创建还是复用呢？你能否在官方文档中找到答案呢？</p>
+
+                            <p>关于连接池，你还遇到过什么坑吗？我是朱晔，欢迎在评论区与我留言分享，也欢迎你把这篇文章分享给你的朋友或同事，一起交流。</p>
+
+                        </div>
+
+                    </div>
+                    <div class="book-post">
+
+                        <p id="tip" align="center"></p>
+
+                        <div><h1>05 HTTP调用：你考虑到超时、重试、并发了吗？</h1>
+
+                            <p>你好，我是朱晔。今天，我们一起聊聊进行 HTTP 调用需要注意的超时、重试、并发等问题。</p>
+
+                            <p>与执行本地方法不同，进行 HTTP 调用本质上是通过 HTTP 协议进行一次网络请求。网络请求必然有超时的可能性，因此我们必须考虑到这三点：</p>
+
+                            <p>首先，框架设置的默认超时是否合理；</p>
+
+                            <p>其次，考虑到网络的不稳定，超时后的请求重试是一个不错的选择，但需要考虑服务端接口的幂等性设计是否允许我们重试；</p>
+
+                            <p>最后，需要考虑框架是否会像浏览器那样限制并发连接数，以免在服务并发很大的情况下，HTTP 调用的并发数限制成为瓶颈。</p>
+
+                            <p>Spring Cloud 是 Java 微服务架构的代表性框架。如果使用 Spring Cloud 进行微服务开发，就会使用 Feign 进行声明式的服务调用。如果不使用 Spring Cloud，而直接使用 Spring Boot 进行微服务开发的话，可能会直接使用 Java 中最常用的 HTTP 客户端 Apache HttpClient 进行服务调用。</p>
+
+                            <p>接下来，我们就看看使用 Feign 和 Apache HttpClient 进行 HTTP 接口调用时，可能会遇到的超时、重试和并发方面的坑。</p>
+
+                            <h2>配置连接超时和读取超时参数的学问</h2>
+
+                            <p>对于 HTTP 调用，虽然应用层走的是 HTTP 协议，但网络层面始终是 TCP/IP 协议。TCP/IP 是面向连接的协议，在传输数据之前需要建立连接。几乎所有的网络框架都会提供这么两个超时参数：</p>
+
+                            <p>连接超时参数 ConnectTimeout，让用户配置建连阶段的最长等待时间；</p>
+
+                            <p>读取超时参数 ReadTimeout，用来控制从 Socket 上读取数据的最长等待时间。</p>
+
+                            <p>这两个参数看似是网络层偏底层的配置参数，不足以引起开发同学的重视。但，正确理解和配置这两个参数，对业务应用特别重要，毕竟超时不是单方面的事情，需要客户端和服务端对超时有一致的估计，协同配合方能平衡吞吐量和错误率。</p>
+
+                            <p>连接超时参数和连接超时的误区有这么两个：</p>
+
+                            <p>连接超时配置得特别长，比如 60 秒。一般来说，TCP 三次握手建立连接需要的时间非常短，通常在毫秒级最多到秒级，不可能需要十几秒甚至几十秒。如果很久都无法建连，很可能是网络或防火墙配置的问题。这种情况下，如果几秒连接不上，那么可能永远也连接不上。因此，设置特别长的连接超时意义不大，将其配置得短一些（比如 1~5 秒）即可。如果是纯内网调用的话，这个参数可以设置得更短，在下游服务离线无法连接的时候，可以快速失败。</p>
+
+                            <p>排查连接超时问题，却没理清连的是哪里。通常情况下，我们的服务会有多个节点，如果别的客户端通过客户端负载均衡技术来连接服务端，那么客户端和服务端会直接建立连接，此时出现连接超时大概率是服务端的问题；而如果服务端通过类似 Nginx 的反向代理来负载均衡，客户端连接的其实是 Nginx，而不是服务端，此时出现连接超时应该排查 Nginx。</p>
+
+                            <p>读取超时参数和读取超时则会有更多的误区，我将其归纳为如下三个。</p>
+
+                            <p>第一个误区：认为出现了读取超时，服务端的执行就会中断。</p>
+
+                            <p>我们来简单测试下。定义一个 client 接口，内部通过 HttpClient 调用服务端接口 server，客户端读取超时 2 秒，服务端接口执行耗时 5 秒。</p>
+
+                            <pre><code>@RestController
+
+
+
+@RequestMapping(&quot;clientreadtimeout&quot;)
+
+
+
+@Slf4j
+
+
+
+public class ClientReadTimeoutController {
+
+
+
+    private String getResponse(String url, int connectTimeout, int readTimeout) throws IOException {
+
+
+
+        return Request.Get(&quot;http://localhost:45678/clientreadtimeout&quot; + url)
+
+
+
+                .connectTimeout(connectTimeout)
+
+
+
+                .socketTimeout(readTimeout)
+
+
+
+                .execute()
+
+
+
+                .returnContent()
+
+
+
+                .asString();
+
+
+
+    }
+
+
+
+
+
+
+
+    @GetMapping(&quot;client&quot;)
+
+
+
+    public String client() throws IOException {
+
+
+
+        log.info(&quot;client1 called&quot;);
+
+
+
+        //服务端5s超时，客户端读取超时2秒
+
+
+
+        return getResponse(&quot;/server?timeout=5000&quot;, 1000, 2000);
+
+
+
+    }
+
+
+
+    @GetMapping(&quot;server&quot;)
+
+
+
+    public void server(@RequestParam(&quot;timeout&quot;) int timeout) throws InterruptedException {
+
+
+
+        log.info(&quot;server called&quot;);
+
+
+
+        TimeUnit.MILLISECONDS.sleep(timeout);
+
+
+
+        log.info(&quot;Done&quot;);
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>调用 client 接口后，从日志中可以看到，客户端 2 秒后出现了 SocketTimeoutException，原因是读取超时，服务端却丝毫没受影响在 3 秒后执行完成。</p>
+
+                            <pre><code>[11:35:11.943] [http-nio-45678-exec-1] [INFO ] [.t.c.c.d.ClientReadTimeoutController:29  ] - client1 called
+
+
+
+[11:35:12.032] [http-nio-45678-exec-2] [INFO ] [.t.c.c.d.ClientReadTimeoutController:36  ] - server called
+
+
+
+[11:35:14.042] [http-nio-45678-exec-1] [ERROR] [.a.c.c.C.[.[.[/].[dispatcherServlet]:175 ] - Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception
+
+
+
+java.net.SocketTimeoutException: Read timed out
+
+
+
+  at java.net.SocketInputStream.socketRead0(Native Method)
+
+
+
+  ...
+
+
+
+[11:35:17.036] [http-nio-45678-exec-2] [INFO ] [.t.c.c.d.ClientReadTimeoutController:38  ] - Done
+
+
+
+</code></pre>
+
+                            <p>我们知道，类似 Tomcat 的 Web 服务器都是把服务端请求提交到线程池处理的，只要服务端收到了请求，网络层面的超时和断开便不会影响服务端的执行。因此，出现读取超时不能随意假设服务端的处理情况，需要根据业务状态考虑如何进行后续处理。</p>
+
+                            <p>第二个误区：认为读取超时只是 Socket 网络层面的概念，是数据传输的最长耗时，故将其配置得非常短，比如 100 毫秒。</p>
+
+                            <p>其实，发生了读取超时，网络层面无法区分是服务端没有把数据返回给客户端，还是数据在网络上耗时较久或丢包。</p>
+
+                            <p>但，因为 TCP 是先建立连接后传输数据，对于网络情况不是特别糟糕的服务调用，通常可以认为出现连接超时是网络问题或服务不在线，而出现读取超时是服务处理超时。确切地说，读取超时指的是，向 Socket 写入数据后，我们等到 Socket 返回数据的超时时间，其中包含的时间或者说绝大部分的时间，是服务端处理业务逻辑的时间。</p>
+
+                            <p>第三个误区：认为超时时间越长任务接口成功率就越高，将读取超时参数配置得太长。</p>
+
+                            <p>进行 HTTP 请求一般是需要获得结果的，属于同步调用。如果超时时间很长，在等待服务端返回数据的同时，客户端线程（通常是 Tomcat 线程）也在等待，当下游服务出现大量超时的时候，程序可能也会受到拖累创建大量线程，最终崩溃。</p>
+
+                            <p>对定时任务或异步任务来说，读取超时配置得长些问题不大。但面向用户响应的请求或是微服务短平快的同步接口调用，并发量一般较大，我们应该设置一个较短的读取超时时间，以防止被下游服务拖慢，通常不会设置超过 30 秒的读取超时。</p>
+
+                            <p>你可能会说，如果把读取超时设置为 2 秒，服务端接口需要 3 秒，岂不是永远都拿不到执行结果了？的确是这样，因此设置读取超时一定要根据实际情况，过长可能会让下游抖动影响到自己，过短又可能影响成功率。甚至，有些时候我们还要根据下游服务的 SLA，为不同的服务端接口设置不同的客户端读取超时。</p>
+
+                            <h2>Feign 和 Ribbon 配合使用，你知道怎么配置超时吗？</h2>
+
+                            <p>刚才我强调了根据自己的需求配置连接超时和读取超时的重要性，你是否尝试过为 Spring Cloud 的 Feign 配置超时参数呢，有没有被网上的各种资料绕晕呢？</p>
+
+                            <p>在我看来，为 Feign 配置超时参数的复杂之处在于，Feign 自己有两个超时参数，它使用的负载均衡组件 Ribbon 本身还有相关配置。那么，这些配置的优先级是怎样的，又哪些什么坑呢？接下来，我们做一些实验吧。</p>
+
+                            <p>为测试服务端的超时，假设有这么一个服务端接口，什么都不干只休眠 10 分钟：</p>
+
+                            <pre><code>@PostMapping(&quot;/server&quot;)
+
+
+
+public void server() throws InterruptedException {
+
+
+
+    TimeUnit.MINUTES.sleep(10);
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>首先，定义一个 Feign 来调用这个接口：</p>
+
+                            <pre><code>@FeignClient(name = &quot;clientsdk&quot;)
+
+
+
+public interface Client {
+
+
+
+    @PostMapping(&quot;/feignandribbon/server&quot;)
+
+
+
+    void server();
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>然后，通过 Feign Client 进行接口调用：</p>
+
+                            <pre><code>@GetMapping(&quot;client&quot;)
+
+
+
+public void timeout() {
+
+
+
+    long begin=System.currentTimeMillis();
+
+
+
+    try{
+
+
+
+        client.server();
+
+
+
+    }catch (Exception ex){
+
+
+
+        log.warn(&quot;执行耗时：{}ms 错误：{}&quot;, System.currentTimeMillis() - begin, ex.getMessage());
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>在配置文件仅指定服务端地址的情况下：</p>
+
+                            <pre><code>clientsdk.ribbon.listOfServers=localhost:45678
+
+
+
+</code></pre>
+
+                            <p>得到如下输出：</p>
+
+                            <pre><code>[15:40:16.094] [http-nio-45678-exec-3] [WARN ] [o.g.t.c.h.f.FeignAndRibbonController    :26  ] - 执行耗时：1007ms 错误：Read timed out executing POST http://clientsdk/feignandribbon/server
+
+
+
+</code></pre>
+
+                            <p>从这个输出中，我们可以得到结论一，默认情况下 Feign 的读取超时是 1 秒，如此短的读取超时算是坑点一。</p>
+
+                            <p>我们来分析一下源码。打开 RibbonClientConfiguration 类后，会看到 DefaultClientConfigImpl 被创建出来之后，ReadTimeout 和 ConnectTimeout 被设置为 1s：</p>
+
+                            <pre><code>/**
+
+
+
+ \* Ribbon client default connect timeout.
+
+
+
+ */
+
+
+
+public static final int DEFAULT_CONNECT_TIMEOUT = 1000;
+
+
+
+/**
+
+
+
+ \* Ribbon client default read timeout.
+
+
+
+ */
+
+
+
+public static final int DEFAULT_READ_TIMEOUT = 1000;
+
+
+
+@Bean
+
+
+
+@ConditionalOnMissingBean
+
+
+
+public IClientConfig ribbonClientConfig() {
+
+
+
+   DefaultClientConfigImpl config = new DefaultClientConfigImpl();
+
+
+
+   config.loadProperties(this.name);
+
+
+
+   config.set(CommonClientConfigKey.ConnectTimeout, DEFAULT_CONNECT_TIMEOUT);
+
+
+
+   config.set(CommonClientConfigKey.ReadTimeout, DEFAULT_READ_TIMEOUT);
+
+
+
+   config.set(CommonClientConfigKey.GZipPayload, DEFAULT_GZIP_PAYLOAD);
+
+
+
+   return config;
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>如果要修改 Feign 客户端默认的两个全局超时时间，你可以设置 feign.client.config.default.readTimeout 和 feign.client.config.default.connectTimeout 参数：</p>
+
+                            <pre><code>feign.client.config.default.readTimeout=3000
+
+
+
+feign.client.config.default.connectTimeout=3000
+
+
+
+</code></pre>
+
+                            <p>修改配置后重试，得到如下日志：</p>
+
+                            <pre><code>[15:43:39.955] [http-nio-45678-exec-3] [WARN ] [o.g.t.c.h.f.FeignAndRibbonController    :26  ] - 执行耗时：3006ms 错误：Read timed out executing POST http://clientsdk/feignandribbon/server
+
+
+
+</code></pre>
+
+                            <p>可见，3 秒读取超时生效了。注意：这里有一个大坑，如果你希望只修改读取超时，可能会只配置这么一行：</p>
+
+                            <pre><code>feign.client.config.default.readTimeout=3000
+
+
+
+</code></pre>
+
+                            <p>测试一下你就会发现，这样的配置是无法生效的！</p>
+
+                            <p>结论二，也是坑点二，如果要配置 Feign 的读取超时，就必须同时配置连接超时，才能生效。</p>
+
+                            <p>打开 FeignClientFactoryBean 可以看到，只有同时设置 ConnectTimeout 和 ReadTimeout，Request.Options 才会被覆盖：</p>
+
+                            <pre><code>if (config.getConnectTimeout() != null &amp;&amp; config.getReadTimeout() != null) {
+
+
+
+   builder.options(new Request.Options(config.getConnectTimeout(),
+
+
+
+         config.getReadTimeout()));
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>更进一步，如果你希望针对单独的 Feign Client 设置超时时间，可以把 default 替换为 Client 的 name：</p>
+
+                            <pre><code>feign.client.config.default.readTimeout=3000
+
+
+
+feign.client.config.default.connectTimeout=3000
+
+
+
+feign.client.config.clientsdk.readTimeout=2000
+
+
+
+feign.client.config.clientsdk.connectTimeout=2000
+
+
+
+</code></pre>
+
+                            <p>可以得出结论三，单独的超时可以覆盖全局超时，这符合预期，不算坑：</p>
+
+                            <pre><code>[15:45:51.708] [http-nio-45678-exec-3] [WARN ] [o.g.t.c.h.f.FeignAndRibbonController    :26  ] - 执行耗时：2006ms 错误：Read timed out executing POST http://clientsdk/feignandribbon/server
+
+
+
+</code></pre>
+
+                            <p>结论四，除了可以配置 Feign，也可以配置 Ribbon 组件的参数来修改两个超时时间。这里的坑点三是，参数首字母要大写，和 Feign 的配置不同。</p>
+
+                            <pre><code>ribbon.ReadTimeout=4000
+
+
+
+ribbon.ConnectTimeout=4000
+
+
+
+</code></pre>
+
+                            <p>可以通过日志证明参数生效：</p>
+
+                            <pre><code>[15:55:18.019] [http-nio-45678-exec-3] [WARN ] [o.g.t.c.h.f.FeignAndRibbonController    :26  ] - 执行耗时：4003ms 错误：Read timed out executing POST http://clientsdk/feignandribbon/server
+
+
+
+</code></pre>
+
+                            <p>最后，我们来看看同时配置 Feign 和 Ribbon 的参数，最终谁会生效？如下代码的参数配置：</p>
+
+                            <pre><code>clientsdk.ribbon.listOfServers=localhost:45678
+
+
+
+feign.client.config.default.readTimeout=3000
+
+
+
+feign.client.config.default.connectTimeout=3000
+
+
+
+ribbon.ReadTimeout=4000
+
+
+
+ribbon.ConnectTimeout=4000
+
+
+
+</code></pre>
+
+                            <p>日志输出证明，最终生效的是 Feign 的超时：</p>
+
+                            <pre><code>[16:01:19.972] [http-nio-45678-exec-3] [WARN ] [o.g.t.c.h.f.FeignAndRibbonController    :26  ] - 执行耗时：3006ms 错误：Read timed out executing POST http://clientsdk/feignandribbon/server
+
+
+
+</code></pre>
+
+                            <p>结论五，同时配置 Feign 和 Ribbon 的超时，以 Feign 为准。这有点反直觉，因为 Ribbon 更底层所以你会觉得后者的配置会生效，但其实不是这样的。</p>
+
+                            <p>在 LoadBalancerFeignClient 源码中可以看到，如果 Request.Options 不是默认值，就会创建一个 FeignOptionsClientConfig 代替原来 Ribbon 的 DefaultClientConfigImpl，导致 Ribbon 的配置被 Feign 覆盖：</p>
+
+                            <pre><code>IClientConfig getClientConfig(Request.Options options, String clientName) {
+
+
+
+   IClientConfig requestConfig;
+
+
+
+   if (options == DEFAULT_OPTIONS) {
+
+
+
+      requestConfig = this.clientFactory.getClientConfig(clientName);
+
+
+
+   }
+
+
+
+   else {
+
+
+
+      requestConfig = new FeignOptionsClientConfig(options);
+
+
+
+   }
+
+
+
+   return requestConfig;
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>但如果这么配置最终生效的还是 Ribbon 的超时（4 秒），这容易让人产生 Ribbon 覆盖了 Feign 的错觉，其实这还是因为坑二所致，单独配置 Feign 的读取超时并不能生效：</p>
+
+                            <pre><code>clientsdk.ribbon.listOfServers=localhost:45678
+
+
+
+feign.client.config.default.readTimeout=3000
+
+
+
+feign.client.config.clientsdk.readTimeout=2000
+
+
+
+ribbon.ReadTimeout=4000
+
+
+
+</code></pre>
+
+                            <h2>你是否知道 Ribbon 会自动重试请求呢？</h2>
+
+                            <p>一些 HTTP 客户端往往会内置一些重试策略，其初衷是好的，毕竟因为网络问题导致丢包虽然频繁但持续时间短，往往重试下第二次就能成功，但一定要小心这种自作主张是否符合我们的预期。</p>
+
+                            <p>之前遇到过一个短信重复发送的问题，但短信服务的调用方用户服务，反复确认代码里没有重试逻辑。那问题究竟出在哪里了？我们来重现一下这个案例。</p>
+
+                            <p>首先，定义一个 Get 请求的发送短信接口，里面没有任何逻辑，休眠 2 秒模拟耗时：</p>
+
+                            <pre><code>@RestController
+
+
+
+@RequestMapping(&quot;ribbonretryissueserver&quot;)
+
+
+
+@Slf4j
+
+
+
+public class RibbonRetryIssueServerController {
+
+
+
+    @GetMapping(&quot;sms&quot;)
+
+
+
+    public void sendSmsWrong(@RequestParam(&quot;mobile&quot;) String mobile, @RequestParam(&quot;message&quot;) String message, HttpServletRequest request) throws InterruptedException {
+
+
+
+        //输出调用参数后休眠2秒
+
+
+
+        log.info(&quot;{} is called, {}=&gt;{}&quot;, request.getRequestURL().toString(), mobile, message);
+
+
+
+        TimeUnit.SECONDS.sleep(2);
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>配置一个 Feign 供客户端调用：</p>
+
+                            <pre><code>@FeignClient(name = &quot;SmsClient&quot;)
+
+
+
+public interface SmsClient {
+
+
+
+    @GetMapping(&quot;/ribbonretryissueserver/sms&quot;)
+
+
+
+    void sendSmsWrong(@RequestParam(&quot;mobile&quot;) String mobile, @RequestParam(&quot;message&quot;) String message);
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>Feign 内部有一个 Ribbon 组件负责客户端负载均衡，通过配置文件设置其调用的服务端为两个节点：</p>
+
+                            <pre><code>SmsClient.ribbon.listOfServers=localhost:45679,localhost:45678
+
+
+
+</code></pre>
+
+                            <p>写一个客户端接口，通过 Feign 调用服务端：</p>
+
+                            <pre><code>@RestController
+
+
+
+@RequestMapping(&quot;ribbonretryissueclient&quot;)
+
+
+
+@Slf4j
+
+
+
+public class RibbonRetryIssueClientController {
+
+
+
+    @Autowired
+
+
+
+    private SmsClient smsClient;
+
+
+
+    @GetMapping(&quot;wrong&quot;)
+
+
+
+    public String wrong() {
+
+
+
+        log.info(&quot;client is called&quot;);
+
+
+
+        try{
+
+
+
+            //通过Feign调用发送短信接口
+
+
+
+            smsClient.sendSmsWrong(&quot;13600000000&quot;, UUID.randomUUID().toString());
+
+
+
+        } catch (Exception ex) {
+
+
+
+            //捕获可能出现的网络错误
+
+
+
+            log.error(&quot;send sms failed : {}&quot;, ex.getMessage());
+
+
+
+        }
+
+
+
+        return &quot;done&quot;;
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>在 45678 和 45679 两个端口上分别启动服务端，然后访问 45678 的客户端接口进行测试。因为客户端和服务端控制器在一个应用中，所以 45678 同时扮演了客户端和服务端的角色。</p>
+
+                            <p>在 45678 日志中可以看到，29 秒时客户端收到请求开始调用服务端接口发短信，同时服务端收到了请求，2 秒后（注意对比第一条日志和第三条日志）客户端输出了读取超时的错误信息：</p>
+
+                            <pre><code>[12:49:29.020] [http-nio-45678-exec-4] [INFO ] [c.d.RibbonRetryIssueClientController:23  ] - client is called
+
+
+
+[12:49:29.026] [http-nio-45678-exec-5] [INFO ] [c.d.RibbonRetryIssueServerController:16  ] - http://localhost:45678/ribbonretryissueserver/sms is called, 13600000000=&gt;a2aa1b32-a044-40e9-8950-7f0189582418
+
+
+
+[12:49:31.029] [http-nio-45678-exec-4] [ERROR] [c.d.RibbonRetryIssueClientController:27  ] - send sms failed : Read timed out executing GET http://SmsClient/ribbonretryissueserver/sms?mobile=13600000000&amp;message=a2aa1b32-a044-40e9-8950-7f0189582418
+
+
+
+</code></pre>
+
+                            <p>而在另一个服务端 45679 的日志中还可以看到一条请求，30 秒时收到请求，也就是客户端接口调用后的 1 秒：</p>
+
+                            <pre><code>[12:49:30.029] [http-nio-45679-exec-2] [INFO ] [c.d.RibbonRetryIssueServerController:16  ] - http://localhost:45679/ribbonretryissueserver/sms is called, 13600000000=&gt;a2aa1b32-a044-40e9-8950-7f0189582418
+
+
+
+</code></pre>
+
+                            <p>客户端接口被调用的日志只输出了一次，而服务端的日志输出了两次。虽然 Feign 的默认读取超时时间是 1 秒，但客户端 2 秒后才出现超时错误。显然，这说明客户端自作主张进行了一次重试，导致短信重复发送。</p>
+
+                            <p>翻看 Ribbon 的源码可以发现，MaxAutoRetriesNextServer 参数默认为 1，也就是 Get 请求在某个服务端节点出现问题（比如读取超时）时，Ribbon 会自动重试一次：</p>
+
+                            <pre><code>// DefaultClientConfigImpl
+
+
+
+public static final int DEFAULT_MAX_AUTO_RETRIES_NEXT_SERVER = 1;
+
+
+
+public static final int DEFAULT_MAX_AUTO_RETRIES = 0;
+
+
+
+// RibbonLoadBalancedRetryPolicy
+
+
+
+public boolean canRetry(LoadBalancedRetryContext context) {
+
+
+
+   HttpMethod method = context.getRequest().getMethod();
+
+
+
+   return HttpMethod.GET == method || lbContext.isOkToRetryOnAllOperations();
+
+
+
+}
+
+
+
+@Override
+
+
+
+public boolean canRetrySameServer(LoadBalancedRetryContext context) {
+
+
+
+   return sameServerCount &lt; lbContext.getRetryHandler().getMaxRetriesOnSameServer()
+
+
+
+         &amp;&amp; canRetry(context);
+
+
+
+}
+
+
+
+@Override
+
+
+
+public boolean canRetryNextServer(LoadBalancedRetryContext context) {
+
+
+
+   // this will be called after a failure occurs and we increment the counter
+
+
+
+   // so we check that the count is less than or equals to too make sure
+
+
+
+   // we try the next server the right number of times
+
+
+
+   return nextServerCount &lt;= lbContext.getRetryHandler().getMaxRetriesOnNextServer()
+
+
+
+         &amp;&amp; canRetry(context);
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>解决办法有两个：</p>
+
+                            <p>一是，把发短信接口从 Get 改为 Post。其实，这里还有一个 API 设计问题，有状态的 API 接口不应该定义为 Get。根据 HTTP 协议的规范，Get 请求用于数据查询，而 Post 才是把数据提交到服务端用于修改或新增。选择 Get 还是 Post 的依据，应该是 API 的行为，而不是参数大小。这里的一个误区是，Get 请求的参数包含在 Url QueryString 中，会受浏览器长度限制，所以一些同学会选择使用 JSON 以 Post 提交大参数，使用 Get 提交小参数。</p>
+
+                            <p>二是，将 MaxAutoRetriesNextServer 参数配置为 0，禁用服务调用失败后在下一个服务端节点的自动重试。在配置文件中添加一行即可：</p>
+
+                            <pre><code>ribbon.MaxAutoRetriesNextServer=0
+
+
+
+</code></pre>
+
+                            <p>看到这里，你觉得问题出在用户服务还是短信服务呢？</p>
+
+                            <p>在我看来，双方都有问题。就像之前说的，Get 请求应该是无状态或者幂等的，短信接口可以设计为支持幂等调用的；而用户服务的开发同学，如果对 Ribbon 的重试机制有所了解的话，或许就能在排查问题上少走些弯路。</p>
+
+                            <h2>并发限制了爬虫的抓取能力</h2>
+
+                            <p>除了超时和重试的坑，进行 HTTP 请求调用还有一个常见的问题是，并发数的限制导致程序的处理能力上不去。</p>
+
+                            <p>我之前遇到过一个爬虫项目，整体爬取数据的效率很低，增加线程池数量也无济于事，只能堆更多的机器做分布式的爬虫。现在，我们就来模拟下这个场景，看看问题出在了哪里。</p>
+
+                            <p>假设要爬取的服务端是这样的一个简单实现，休眠 1 秒返回数字 1：</p>
+
+                            <pre><code>@GetMapping(&quot;server&quot;)
+
+
+
+public int server() throws InterruptedException {
+
+
+
+    TimeUnit.SECONDS.sleep(1);
+
+
+
+    return 1;
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>爬虫需要多次调用这个接口进行数据抓取，为了确保线程池不是并发的瓶颈，我们使用一个没有线程上限的 newCachedThreadPool 作为爬取任务的线程池（再次强调，除非你非常清楚自己的需求，否则一般不要使用没有线程数量上限的线程池），然后使用 HttpClient 实现 HTTP 请求，把请求任务循环提交到线程池处理，最后等待所有任务执行完成后输出执行耗时：</p>
+
+                            <pre><code>private int sendRequest(int count, Supplier&lt;CloseableHttpClient&gt; client) throws InterruptedException {
+
+
+
+    //用于计数发送的请求个数
+
+
+
+    AtomicInteger atomicInteger = new AtomicInteger();
+
+
+
+    //使用HttpClient从server接口查询数据的任务提交到线程池并行处理
+
+
+
+    ExecutorService threadPool = Executors.newCachedThreadPool();
+
+
+
+    long begin = System.currentTimeMillis();
+
+
+
+    IntStream.rangeClosed(1, count).forEach(i -&gt; {
+
+
+
+        threadPool.execute(() -&gt; {
+
+
+
+            try (CloseableHttpResponse response = client.get().execute(new HttpGet(&quot;http://127.0.0.1:45678/routelimit/server&quot;))) {
+
+
+
+                atomicInteger.addAndGet(Integer.parseInt(EntityUtils.toString(response.getEntity())));
+
+
+
+            } catch (Exception ex) {
+
+
+
+                ex.printStackTrace();
+
+
+
+            }
+
+
+
+        });
+
+
+
+    });
+
+
+
+    //等到count个任务全部执行完毕
+
+
+
+    threadPool.shutdown();
+
+
+
+    threadPool.awaitTermination(1, TimeUnit.HOURS);
+
+
+
+    log.info(&quot;发送 {} 次请求，耗时 {} ms&quot;, atomicInteger.get(), System.currentTimeMillis() - begin);
+
+
+
+    return atomicInteger.get();
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>首先，使用默认的 PoolingHttpClientConnectionManager 构造的 CloseableHttpClient，测试一下爬取 10 次的耗时：</p>
+
+                            <pre><code>static CloseableHttpClient httpClient1;
+
+
+
+static {
+
+
+
+    httpClient1 = HttpClients.custom().setConnectionManager(new PoolingHttpClientConnectionManager()).build();
+
+
+
+}
+
+
+
+@GetMapping(&quot;wrong&quot;)
+
+
+
+public int wrong(@RequestParam(value = &quot;count&quot;, defaultValue = &quot;10&quot;) int count) throws InterruptedException {
+
+
+
+    return sendRequest(count, () -&gt; httpClient1);
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>虽然一个请求需要 1 秒执行完成，但我们的线程池是可以扩张使用任意数量线程的。按道理说，10 个请求并发处理的时间基本相当于 1 个请求的处理时间，也就是 1 秒，但日志中显示实际耗时 5 秒：</p>
+
+                            <pre><code>[12:48:48.122] [http-nio-45678-exec-1] [INFO ] [o.g.t.c.h.r.RouteLimitController        :54  ] - 发送 10 次请求，耗时 5265 ms
+
+
+
+</code></pre>
+
+                            <p>查看 PoolingHttpClientConnectionManager 源码，可以注意到有两个重要参数：</p>
+
+                            <p>defaultMaxPerRoute=2，也就是同一个主机 / 域名的最大并发请求数为 2。我们的爬虫需要 10 个并发，显然是默认值太小限制了爬虫的效率。</p>
+
+                            <p>maxTotal=20，也就是所有主机整体最大并发为 20，这也是 HttpClient 整体的并发度。目前，我们请求数是 10 最大并发是 10，20 不会成为瓶颈。举一个例子，使用同一个 HttpClient 访问 10 个域名，defaultMaxPerRoute 设置为 10，为确保每一个域名都能达到 10 并发，需要把 maxTotal 设置为 100。</p>
+
+                            <pre><code>public PoolingHttpClientConnectionManager(
+
+
+
+    final HttpClientConnectionOperator httpClientConnectionOperator,
+
+
+
+    final HttpConnectionFactory&lt;HttpRoute, ManagedHttpClientConnection&gt; connFactory,
+
+
+
+    final long timeToLive, final TimeUnit timeUnit) {
+
+
+
+    ...
+
+
+
+    this.pool = new CPool(new InternalConnectionFactory(
+
+
+
+            this.configData, connFactory), 2, 20, timeToLive, timeUnit);
+
+
+
+   ...
+
+
+
+}
+
+
+
+public CPool(
+
+
+
+        final ConnFactory&lt;HttpRoute, ManagedHttpClientConnection&gt; connFactory,
+
+
+
+        final int defaultMaxPerRoute, final int maxTotal,
+
+
+
+        final long timeToLive, final TimeUnit timeUnit) {
+
+
+
+    ...
+
+
+
+}}
+
+
+
+</code></pre>
+
+                            <p>HttpClient 是 Java 非常常用的 HTTP 客户端，这个问题经常出现。你可能会问，为什么默认值限制得这么小。</p>
+
+                            <p>其实，这不能完全怪 HttpClient，很多早期的浏览器也限制了同一个域名两个并发请求。对于同一个域名并发连接的限制，其实是 HTTP 1.1 协议要求的，这里有这么一段话：</p>
+
+                            <pre><code>Clients that use persistent connections SHOULD limit the number of simultaneous connections that they maintain to a given server. A single-user client SHOULD NOT maintain more than 2 connections with any server or proxy. A proxy SHOULD use up to 2*N connections to another server or proxy, where N is the number of simultaneously active users. These guidelines are intended to improve HTTP response times and avoid congestion.
+
+
+
+</code></pre>
+
+                            <p>HTTP 1.1 协议是 20 年前制定的，现在 HTTP 服务器的能力强很多了，所以有些新的浏览器没有完全遵从 2 并发这个限制，放开并发数到了 8 甚至更大。如果需要通过 HTTP 客户端发起大量并发请求，不管使用什么客户端，请务必确认客户端的实现默认的并发度是否满足需求。</p>
+
+                            <p>既然知道了问题所在，我们就尝试声明一个新的 HttpClient 放开相关限制，设置 maxPerRoute 为 50、maxTotal 为 100，然后修改一下刚才的 wrong 方法，使用新的客户端进行测试：</p>
+
+                            <pre><code>httpClient2 = HttpClients.custom().setMaxConnPerRoute(10).setMaxConnTotal(20).build();
+
+
+
+</code></pre>
+
+                            <p>输出如下，10 次请求在 1 秒左右执行完成。可以看到，因为放开了一个 Host 2 个并发的默认限制，爬虫效率得到了大幅提升：</p>
+
+                            <pre><code>[12:58:11.333] [http-nio-45678-exec-3] [INFO ] [o.g.t.c.h.r.RouteLimitController        :54  ] - 发送 10 次请求，耗时 1023 ms
+
+
+
+</code></pre>
+
+                            <h2>重点回顾</h2>
+
+                            <p>今天，我和你分享了 HTTP 调用最常遇到的超时、重试和并发问题。</p>
+
+                            <p>连接超时代表建立 TCP 连接的时间，读取超时代表了等待远端返回数据的时间，也包括远端程序处理的时间。在解决连接超时问题时，我们要搞清楚连的是谁；在遇到读取超时问题的时候，我们要综合考虑下游服务的服务标准和自己的服务标准，设置合适的读取超时时间。此外，在使用诸如 Spring Cloud Feign 等框架时务必确认，连接和读取超时参数的配置是否正确生效。</p>
+
+                            <p>对于重试，因为 HTTP 协议认为 Get 请求是数据查询操作，是无状态的，又考虑到网络出现丢包是比较常见的事情，有些 HTTP 客户端或代理服务器会自动重试 Get/Head 请求。如果你的接口设计不支持幂等，需要关闭自动重试。但，更好的解决方案是，遵从 HTTP 协议的建议来使用合适的 HTTP 方法。</p>
+
+                            <p>最后我们看到，包括 HttpClient 在内的 HTTP 客户端以及浏览器，都会限制客户端调用的最大并发数。如果你的客户端有比较大的请求调用并发，比如做爬虫，或是扮演类似代理的角色，又或者是程序本身并发较高，如此小的默认值很容易成为吞吐量的瓶颈，需要及时调整。</p>
+
+                            <p>今天用到的代码，我都放在了 GitHub 上，你可以点击这个链接查看。</p>
+
+                            <h2>思考与讨论</h2>
+
+                            <p>第一节中我们强调了要注意连接超时和读取超时参数的配置，大多数的 HTTP 客户端也都有这两个参数。有读就有写，但为什么我们很少看到“写入超时”的概念呢？</p>
+
+                            <p>除了 Ribbon 的 AutoRetriesNextServer 重试机制，Nginx 也有类似的重试功能。你了解 Nginx 相关的配置吗？</p>
+
+                            <p>针对 HTTP 调用，你还遇到过什么坑吗？我是朱晔，欢迎在评论区与我留言分享你的想法，也欢迎你把这篇文章分享给你的朋友或同事，一起交流。</p>
+
+                        </div>
+
+                    </div>
+                    <div class="book-post">
+
+                        <p id="tip" align="center"></p>
+
+                        <div><h1>06 2成的业务代码的Spring声明式事务，可能都没处理正确</h1>
+
+                            <p>你好，我是朱晔。今天，我来和你聊聊业务代码中与数据库事务相关的坑。</p>
+
+                            <p>Spring 针对 Java Transaction API (JTA)、JDBC、Hibernate 和 Java Persistence API (JPA) 等事务 API，实现了一致的编程模型，而 Spring 的声明式事务功能更是提供了极其方便的事务配置方式，配合 Spring Boot 的自动配置，大多数 Spring Boot 项目只需要在方法上标记 @Transactional 注解，即可一键开启方法的事务性配置。</p>
+
+                            <p>据我观察，大多数业务开发同学都有事务的概念，也知道如果整体考虑多个数据库操作要么成功要么失败时，需要通过数据库事务来实现多个操作的一致性和原子性。但，在使用上大多仅限于为方法标记 @Transactional，不会去关注事务是否有效、出错后事务是否正确回滚，也不会考虑复杂的业务代码中涉及多个子业务逻辑时，怎么正确处理事务。</p>
+
+                            <p>事务没有被正确处理，一般来说不会过于影响正常流程，也不容易在测试阶段被发现。但当系统越来越复杂、压力越来越大之后，就会带来大量的数据不一致问题，随后就是大量的人工介入查看和修复数据。</p>
+
+                            <p>所以说，一个成熟的业务系统和一个基本可用能完成功能的业务系统，在事务处理细节上的差异非常大。要确保事务的配置符合业务功能的需求，往往不仅仅是技术问题，还涉及产品流程和架构设计的问题。今天这一讲的标题“20% 的业务代码的 Spring 声明式事务，可能都没处理正确”中，20% 这个数字在我看来还是比较保守的。</p>
+
+                            <p>我今天要分享的内容，就是帮助你在技术问题上理清思路，避免因为事务处理不当让业务逻辑的实现产生大量偶发 Bug。</p>
+
+                            <h2>小心 Spring 的事务可能没有生效</h2>
+
+                            <p>在使用 @Transactional 注解开启声明式事务时， 第一个最容易忽略的问题是，很可能事务并没有生效。</p>
+
+                            <p>实现下面的 Demo 需要一些基础类，首先定义一个具有 ID 和姓名属性的 UserEntity，也就是一个包含两个字段的用户表：</p>
+
+                            <pre><code>@Entity
+
+
+
+@Data
+
+
+
+public class UserEntity {
+
+
+
+    @Id
+
+
+
+    @GeneratedValue(strategy = AUTO)
+
+
+
+    private Long id;
+
+
+
+    private String name;
+
+
+
+    public UserEntity() { }
+
+
+
+    public UserEntity(String name) {
+
+
+
+        this.name = name;
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>为了方便理解，我使用 Spring JPA 做数据库访问，实现这样一个 Repository，新增一个根据用户名查询所有数据的方法：</p>
+
+                            <pre><code>@Repository
+
+
+
+public interface UserRepository extends JpaRepository&lt;UserEntity, Long&gt; {
+
+
+
+    List&lt;UserEntity&gt; findByName(String name);
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>定义一个 UserService 类，负责业务逻辑处理。如果不清楚 @Transactional 的实现方式，只考虑代码逻辑的话，这段代码看起来没有问题。</p>
+
+                            <p>定义一个入口方法 createUserWrong1 来调用另一个私有方法 createUserPrivate，私有方法上标记了 @Transactional 注解。当传入的用户名包含 test 关键字时判断为用户名不合法，抛出异常，让用户创建操作失败，期望事务可以回滚：</p>
+
+                            <pre><code>@Service
+
+
+
+@Slf4j
+
+
+
+public class UserService {
+
+
+
+    @Autowired
+
+
+
+    private UserRepository userRepository;
+
+
+
+    //一个公共方法供Controller调用，内部调用事务性的私有方法
+
+
+
+    public int createUserWrong1(String name) {
+
+
+
+        try {
+
+
+
+            this.createUserPrivate(new UserEntity(name));
+
+
+
+        } catch (Exception ex) {
+
+
+
+            log.error(&quot;create user failed because {}&quot;, ex.getMessage());
+
+
+
+        }
+
+
+
+        return userRepository.findByName(name).size();
+
+
+
+    }
+
+
+
+    //标记了@Transactional的private方法
+
+
+
+    @Transactional
+
+
+
+    private void createUserPrivate(UserEntity entity) {
+
+
+
+        userRepository.save(entity);
+
+
+
+        if (entity.getName().contains(&quot;test&quot;))
+
+
+
+            throw new RuntimeException(&quot;invalid username!&quot;);
+
+
+
+    }
+
+
+
+    //根据用户名查询用户数
+
+
+
+    public int getUserCount(String name) {
+
+
+
+        return userRepository.findByName(name).size();
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>下面是 Controller 的实现，只是调用一下刚才定义的 UserService 中的入口方法 createUserWrong1。</p>
+
+                            <pre><code>@Autowired
+
+
+
+private UserService userService;
+
+
+
+
+
+
+
+@GetMapping(&quot;wrong1&quot;)
+
+
+
+public int wrong1(@RequestParam(&quot;name&quot;) String name) {
+
+
+
+    return userService.createUserWrong1(name);
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>调用接口后发现，即便用户名不合法，用户也能创建成功。刷新浏览器，多次发现有十几个的非法用户注册。</p>
+
+                            <p>这里给出 @Transactional 生效原则 1，除非特殊配置（比如使用 AspectJ 静态织入实现 AOP），否则只有定义在 public 方法上的 @Transactional 才能生效。原因是，Spring 默认通过动态代理的方式实现 AOP，对目标方法进行增强，private 方法无法代理到，Spring 自然也无法动态增强事务处理逻辑。</p>
+
+                            <p>你可能会说，修复方式很简单，把标记了事务注解的 createUserPrivate 方法改为 public 即可。在 UserService 中再建一个入口方法 createUserWrong2，来调用这个 public 方法再次尝试：</p>
+
+                            <pre><code>public int createUserWrong2(String name) {
+
+
+
+    try {
+
+
+
+        this.createUserPublic(new UserEntity(name));
+
+
+
+    } catch (Exception ex) {
+
+
+
+        log.error(&quot;create user failed because {}&quot;, ex.getMessage());
+
+
+
+    }
+
+
+
+  return userRepository.findByName(name).size();
+
+
+
+}
+
+
+
+//标记了@Transactional的public方法
+
+
+
+@Transactional
+
+
+
+public void createUserPublic(UserEntity entity) {
+
+
+
+    userRepository.save(entity);
+
+
+
+    if (entity.getName().contains(&quot;test&quot;))
+
+
+
+        throw new RuntimeException(&quot;invalid username!&quot;);
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>测试发现，调用新的 createUserWrong2 方法事务同样不生效。这里，我给出 @Transactional 生效原则 2，必须通过代理过的类从外部调用目标方法才能生效。</p>
+
+                            <p>Spring 通过 AOP 技术对方法进行增强，要调用增强过的方法必然是调用代理后的对象。我们尝试修改下 UserService 的代码，注入一个 self，然后再通过 self 实例调用标记有 @Transactional 注解的 createUserPublic 方法。设置断点可以看到，self 是由 Spring 通过 CGLIB 方式增强过的类：</p>
+
+                            <p>CGLIB 通过继承方式实现代理类，private 方法在子类不可见，自然也就无法进行事务增强；</p>
+
+                            <p>this 指针代表对象自己，Spring 不可能注入 this，所以通过 this 访问方法必然不是代理。</p>
+
+                            <p><img src="assets/b077c033fa394353309fbb4f8368e46c.png" alt="img" /></p>
+
+                            <p>把 this 改为 self 后测试发现，在 Controller 中调用 createUserRight 方法可以验证事务是生效的，非法的用户注册操作可以回滚。</p>
+
+                            <p>虽然在 UserService 内部注入自己调用自己的 createUserPublic 可以正确实现事务，但更合理的实现方式是，让 Controller 直接调用之前定义的 UserService 的 createUserPublic 方法，因为注入自己调用自己很奇怪，也不符合分层实现的规范：</p>
+
+                            <pre><code>@GetMapping(&quot;right2&quot;)
+
+
+
+public int right2(@RequestParam(&quot;name&quot;) String name) {
+
+
+
+    try {
+
+
+
+        userService.createUserPublic(new UserEntity(name));
+
+
+
+    } catch (Exception ex) {
+
+
+
+        log.error(&quot;create user failed because {}&quot;, ex.getMessage());
+
+
+
+    }
+
+
+
+    return userService.getUserCount(name);
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>我们再通过一张图来回顾下 this 自调用、通过 self 调用，以及在 Controller 中调用 UserService 三种实现的区别：</p>
+
+                            <p><img src="assets/c43ea620b0b611ae194f8438506d7570.png" alt="img" /></p>
+
+                            <p>通过 this 自调用，没有机会走到 Spring 的代理类；后两种改进方案调用的是 Spring 注入的 UserService，通过代理调用才有机会对 createUserPublic 方法进行动态增强。</p>
+
+                            <p>这里，我还有一个小技巧，强烈建议你在开发时打开相关的 Debug 日志，以方便了解 Spring 事务实现的细节，并及时判断事务的执行情况。</p>
+
+                            <p>我们的 Demo 代码使用 JPA 进行数据库访问，可以这么开启 Debug 日志：</p>
+
+                            <pre><code>logging.level.org.springframework.orm.jpa=DEBUG
+
+
+
+</code></pre>
+
+                            <p>开启日志后，我们再比较下在 UserService 中通过 this 调用和在 Controller 中通过注入的 UserService Bean 调用 createUserPublic 区别。很明显，this 调用因为没有走代理，事务没有在 createUserPublic 方法上生效，只在 Repository 的 save 方法层面生效：</p>
+
+                            <pre><code>//在UserService中通过this调用public的createUserPublic
+
+
+
+[10:10:19.913] [http-nio-45678-exec-1] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :370 ] - Creating new transaction with name [org.springframework.data.jpa.repository.support.SimpleJpaRepository.save]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+
+
+
+//在Controller中通过注入的UserService Bean调用createUserPublic
+
+
+
+[10:10:47.750] [http-nio-45678-exec-6] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :370 ] - Creating new transaction with name [org.geekbang.time.commonmistakes.transaction.demo1.UserService.createUserPublic]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+
+
+
+</code></pre>
+
+                            <p>你可能还会考虑一个问题，这种实现在 Controller 里处理了异常显得有点繁琐，还不如直接把 createUserWrong2 方法加上 @Transactional 注解，然后在 Controller 中直接调用这个方法。这样一来，既能从外部（Controller 中）调用 UserService 中的方法，方法又是 public 的能够被动态代理 AOP 增强。</p>
+
+                            <p>你可以试一下这种方法，但很容易就会踩第二个坑，即因为没有正确处理异常，导致事务即便生效也不一定能回滚。</p>
+
+                            <h2>事务即便生效也不一定能回滚</h2>
+
+                            <p>通过 AOP 实现事务处理可以理解为，使用 try…catch…来包裹标记了 @Transactional 注解的方法，当方法出现了异常并且满足一定条件的时候，在 catch 里面我们可以设置事务回滚，没有异常则直接提交事务。</p>
+
+                            <p>这里的“一定条件”，主要包括两点。</p>
+
+                            <p>第一，只有异常传播出了标记了 @Transactional 注解的方法，事务才能回滚。在 Spring 的 TransactionAspectSupport 里有个 invokeWithinTransaction 方法，里面就是处理事务的逻辑。可以看到，只有捕获到异常才能进行后续事务处理：</p>
+
+                            <pre><code>try {
+
+
+
+   // This is an around advice: Invoke the next interceptor in the chain.
+
+
+
+   // This will normally result in a target object being invoked.
+
+
+
+   retVal = invocation.proceedWithInvocation();
+
+
+
+}
+
+
+
+catch (Throwable ex) {
+
+
+
+   // target invocation exception
+
+
+
+   completeTransactionAfterThrowing(txInfo, ex);
+
+
+
+   throw ex;
+
+
+
+}
+
+
+
+finally {
+
+
+
+   cleanupTransactionInfo(txInfo);
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>第二，默认情况下，出现 RuntimeException（非受检异常）或 Error 的时候，Spring 才会回滚事务。</p>
+
+                            <p>打开 Spring 的 DefaultTransactionAttribute 类能看到如下代码块，可以发现相关证据，通过注释也能看到 Spring 这么做的原因，大概的意思是受检异常一般是业务异常，或者说是类似另一种方法的返回值，出现这样的异常可能业务还能完成，所以不会主动回滚；而 Error 或 RuntimeException 代表了非预期的结果，应该回滚：</p>
+
+                            <pre><code>/**
+
+
+
+ \* The default behavior is as with EJB: rollback on unchecked exception
+
+
+
+ \* ({@link RuntimeException}), assuming an unexpected outcome outside of any
+
+
+
+ \* business rules. Additionally, we also attempt to rollback on {@link Error} which
+
+
+
+ \* is clearly an unexpected outcome as well. By contrast, a checked exception is
+
+
+
+ \* considered a business exception and therefore a regular expected outcome of the
+
+
+
+ \* transactional business method, i.e. a kind of alternative return value which
+
+
+
+ \* still allows for regular completion of resource operations.
+
+
+
+ \* &lt;p&gt;This is largely consistent with TransactionTemplate's default behavior,
+
+
+
+ \* except that TransactionTemplate also rolls back on undeclared checked exceptions
+
+
+
+ \* (a corner case). For declarative transactions, we expect checked exceptions to be
+
+
+
+ \* intentionally declared as business exceptions, leading to a commit by default.
+
+
+
+ \* @see org.springframework.transaction.support.TransactionTemplate#execute
+
+
+
+ */
+
+
+
+@Override
+
+
+
+public boolean rollbackOn(Throwable ex) {
+
+
+
+   return (ex instanceof RuntimeException || ex instanceof Error);
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>接下来，我和你分享 2 个反例。</p>
+
+                            <p>重新实现一下 UserService 中的注册用户操作：</p>
+
+                            <p>在 createUserWrong1 方法中会抛出一个 RuntimeException，但由于方法内 catch 了所有异常，异常无法从方法传播出去，事务自然无法回滚。</p>
+
+                            <p>在 createUserWrong2 方法中，注册用户的同时会有一次 otherTask 文件读取操作，如果文件读取失败，我们希望用户注册的数据库操作回滚。虽然这里没有捕获异常，但因为 otherTask 方法抛出的是受检异常，createUserWrong2 传播出去的也是受检异常，事务同样不会回滚。</p>
+
+                            <pre><code>@Service
+
+
+
+@Slf4j
+
+
+
+public class UserService {
+
+
+
+    @Autowired
+
+
+
+    private UserRepository userRepository;
+
+
+
+
+
+
+
+    //异常无法传播出方法，导致事务无法回滚
+
+
+
+    @Transactional
+
+
+
+    public void createUserWrong1(String name) {
+
+
+
+        try {
+
+
+
+            userRepository.save(new UserEntity(name));
+
+
+
+            throw new RuntimeException(&quot;error&quot;);
+
+
+
+        } catch (Exception ex) {
+
+
+
+            log.error(&quot;create user failed&quot;, ex);
+
+
+
+        }
+
+
+
+    }
+
+
+
+    //即使出了受检异常也无法让事务回滚
+
+
+
+    @Transactional
+
+
+
+    public void createUserWrong2(String name) throws IOException {
+
+
+
+        userRepository.save(new UserEntity(name));
+
+
+
+        otherTask();
+
+
+
+    }
+
+
+
+    //因为文件不存在，一定会抛出一个IOException
+
+
+
+    private void otherTask() throws IOException {
+
+
+
+        Files.readAllLines(Paths.get(&quot;file-that-not-exist&quot;));
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>Controller 中的实现，仅仅是调用 UserService 的 createUserWrong1 和 createUserWrong2 方法，这里就贴出实现了。这 2 个方法的实现和调用，虽然完全避开了事务不生效的坑，但因为异常处理不当，导致程序没有如我们期望的文件操作出现异常时回滚事务。</p>
+
+                            <p>现在，我们来看下修复方式，以及如何通过日志来验证是否修复成功。针对这 2 种情况，对应的修复方法如下。</p>
+
+                            <p>第一，如果你希望自己捕获异常进行处理的话，也没关系，可以手动设置让当前事务处于回滚状态：</p>
+
+                            <pre><code>@Transactional
+
+
+
+public void createUserRight1(String name) {
+
+
+
+    try {
+
+
+
+        userRepository.save(new UserEntity(name));
+
+
+
+        throw new RuntimeException(&quot;error&quot;);
+
+
+
+    } catch (Exception ex) {
+
+
+
+        log.error(&quot;create user failed&quot;, ex);
+
+
+
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+
+
+
+    }
+
+
+
+}
+
+</code></pre>
+
+                            <p>运行后可以在日志中看到 Rolling back 字样，确认事务回滚了。同时，我们还注意到“Transactional code has requested rollback”的提示，表明手动请求回滚：</p>
+
+                            <pre><code>[22:14:49.352] [http-nio-45678-exec-4] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :698 ] - Transactional code has requested rollback
+
+
+
+[22:14:49.353] [http-nio-45678-exec-4] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :834 ] - Initiating transaction rollback
+
+
+
+[22:14:49.353] [http-nio-45678-exec-4] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :555 ] - Rolling back JPA transaction on EntityManager [SessionImpl(1906719643&lt;open&gt;)]
+
+
+
+</code></pre>
+
+                            <p>第二，在注解中声明，期望遇到所有的 Exception 都回滚事务（来突破默认不回滚受检异常的限制）：</p>
+
+                            <pre><code>@Transactional(rollbackFor = Exception.class)
+
+
+
+public void createUserRight2(String name) throws IOException {
+
+
+
+    userRepository.save(new UserEntity(name));
+
+
+
+    otherTask();
+
+
+
+}
+
+</code></pre>
+
+                            <p>运行后，同样可以在日志中看到回滚的提示：</p>
+
+                            <pre><code>[22:10:47.980] [http-nio-45678-exec-4] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :834 ] - Initiating transaction rollback
+
+
+
+[22:10:47.981] [http-nio-45678-exec-4] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :555 ] - Rolling back JPA transaction on EntityManager [SessionImpl(1419329213&lt;open&gt;)]
+
+
+
+</code></pre>
+
+                            <p>在这个例子中，我们展现的是一个复杂的业务逻辑，其中有数据库操作、IO 操作，在 IO 操作出现问题时希望让数据库事务也回滚，以确保逻辑的一致性。在有些业务逻辑中，可能会包含多次数据库操作，我们不一定希望将两次操作作为一个事务来处理，这时候就需要仔细考虑事务传播的配置了，否则也可能踩坑。</p>
+
+                            <h2>请确认事务传播配置是否符合自己的业务逻辑</h2>
+
+                            <p>有这么一个场景：一个用户注册的操作，会插入一个主用户到用户表，还会注册一个关联的子用户。我们希望将子用户注册的数据库操作作为一个独立事务来处理，即使失败也不会影响主流程，即不影响主用户的注册。</p>
+
+                            <p>接下来，我们模拟一个实现类似业务逻辑的 UserService：</p>
+
+                            <pre><code>@Autowired
+
+
+
+private UserRepository userRepository;
+
+
+
+@Autowired
+
+
+
+private SubUserService subUserService;
+
+
+
+@Transactional
+
+
+
+public void createUserWrong(UserEntity entity) {
+
+
+
+    createMainUser(entity);
+
+
+
+    subUserService.createSubUserWithExceptionWrong(entity);
+
+
+
+}
+
+
+
+private void createMainUser(UserEntity entity) {
+
+
+
+    userRepository.save(entity);
+
+
+
+    log.info(&quot;createMainUser finish&quot;);
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>SubUserService 的 createSubUserWithExceptionWrong 实现正如其名，因为最后我们抛出了一个运行时异常，错误原因是用户状态无效，所以子用户的注册肯定是失败的。我们期望子用户的注册作为一个事务单独回滚，不影响主用户的注册，这样的逻辑可以实现吗？</p>
+
+                            <pre><code>@Service
+
+
+
+@Slf4j
+
+
+
+public class SubUserService {
+
+
+
+    @Autowired
+
+
+
+    private UserRepository userRepository;
+
+
+
+    @Transactional
+
+
+
+    public void createSubUserWithExceptionWrong(UserEntity entity) {
+
+
+
+        log.info(&quot;createSubUserWithExceptionWrong start&quot;);
+
+
+
+        userRepository.save(entity);
+
+
+
+        throw new RuntimeException(&quot;invalid status&quot;);
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>我们在 Controller 里实现一段测试代码，调用 UserService：</p>
+
+                            <pre><code>@GetMapping(&quot;wrong&quot;)
+
+
+
+public int wrong(@RequestParam(&quot;name&quot;) String name) {
+
+
+
+    try {
+
+
+
+        userService.createUserWrong(new UserEntity(name));
+
+
+
+    } catch (Exception ex) {
+
+
+
+        log.error(&quot;createUserWrong failed, reason:{}&quot;, ex.getMessage());
+
+
+
+    }
+
+
+
+    return userService.getUserCount(name);
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>调用后可以在日志中发现如下信息，很明显事务回滚了，最后 Controller 打出了创建子用户抛出的运行时异常：</p>
+
+                            <pre><code>[22:50:42.866] [http-nio-45678-exec-8] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :555 ] - Rolling back JPA transaction on EntityManager [SessionImpl(103972212&lt;open&gt;)]
+
+
+
+[22:50:42.869] [http-nio-45678-exec-8] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :620 ] - Closing JPA EntityManager [SessionImpl(103972212&lt;open&gt;)] after transaction
+
+
+
+[22:50:42.869] [http-nio-45678-exec-8] [ERROR] [t.d.TransactionPropagationController:23  ] - createUserWrong failed, reason:invalid status
+
+
+
+</code></pre>
+
+                            <p>你马上就会意识到，不对呀，因为运行时异常逃出了 @Transactional 注解标记的 createUserWrong 方法，Spring 当然会回滚事务了。如果我们希望主方法不回滚，应该把子方法抛出的异常捕获了。</p>
+
+                            <p>也就是这么改，把 subUserService.createSubUserWithExceptionWrong 包裹上 catch，这样外层主方法就不会出现异常了：</p>
+
+                            <pre><code>@Transactional
+
+
+
+public void createUserWrong2(UserEntity entity) {
+
+
+
+    createMainUser(entity);
+
+
+
+    try{
+
+
+
+        subUserService.createSubUserWithExceptionWrong(entity);
+
+
+
+    } catch (Exception ex) {
+
+
+
+        // 虽然捕获了异常，但是因为没有开启新事务，而当前事务因为异常已经被标记为rollback了，所以最终还是会回滚。
+
+
+
+        log.error(&quot;create sub user error:{}&quot;, ex.getMessage());
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>运行程序后可以看到如下日志：</p>
+
+                            <pre><code>[22:57:21.722] [http-nio-45678-exec-3] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :370 ] - Creating new transaction with name [org.geekbang.time.commonmistakes.transaction.demo3.UserService.createUserWrong2]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+
+
+
+[22:57:21.739] [http-nio-45678-exec-3] [INFO ] [t.c.transaction.demo3.SubUserService:19  ] - createSubUserWithExceptionWrong start
+
+
+
+[22:57:21.739] [http-nio-45678-exec-3] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :356 ] - Found thread-bound EntityManager [SessionImpl(1794007607&lt;open&gt;)] for JPA transaction
+
+
+
+[22:57:21.739] [http-nio-45678-exec-3] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :471 ] - Participating in existing transaction
+
+
+
+[22:57:21.740] [http-nio-45678-exec-3] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :843 ] - Participating transaction failed - marking existing transaction as rollback-only
+
+
+
+[22:57:21.740] [http-nio-45678-exec-3] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :580 ] - Setting JPA transaction on EntityManager [SessionImpl(1794007607&lt;open&gt;)] rollback-only
+
+
+
+[22:57:21.740] [http-nio-45678-exec-3] [ERROR] [.g.t.c.transaction.demo3.UserService:37  ] - create sub user error:invalid status
+
+
+
+[22:57:21.740] [http-nio-45678-exec-3] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :741 ] - Initiating transaction commit
+
+
+
+[22:57:21.740] [http-nio-45678-exec-3] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :529 ] - Committing JPA transaction on EntityManager [SessionImpl(1794007607&lt;open&gt;)]
+
+
+
+[22:57:21.743] [http-nio-45678-exec-3] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :620 ] - Closing JPA EntityManager [SessionImpl(1794007607&lt;open&gt;)] after transaction
+
+
+
+[22:57:21.743] [http-nio-45678-exec-3] [ERROR] [t.d.TransactionPropagationController:33  ] - createUserWrong2 failed, reason:Transaction silently rolled back because it has been marked as rollback-only
+
+
+
+org.springframework.transaction.UnexpectedRollbackException: Transaction silently rolled back because it has been marked as rollback-only
+
+
+
+...
+
+
+
+</code></pre>
+
+                            <p>需要注意以下几点：</p>
+
+                            <p>如第 1 行所示，对 createUserWrong2 方法开启了异常处理；</p>
+
+                            <p>如第 5 行所示，子方法因为出现了运行时异常，标记当前事务为回滚；</p>
+
+                            <p>如第 7 行所示，主方法的确捕获了异常打印出了 create sub user error 字样；</p>
+
+                            <p>如第 9 行所示，主方法提交了事务；</p>
+
+                            <p>奇怪的是，如第 11 行和 12 行所示，Controller 里出现了一个 UnexpectedRollbackException，异常描述提示最终这个事务回滚了，而且是静默回滚的。之所以说是静默，是因为 createUserWrong2 方法本身并没有出异常，只不过提交后发现子方法已经把当前事务设置为了回滚，无法完成提交。</p>
+
+                            <p>这挺反直觉的。我们之前说，出了异常事务不一定回滚，这里说的却是不出异常，事务也不一定可以提交。原因是，主方法注册主用户的逻辑和子方法注册子用户的逻辑是同一个事务，子逻辑标记了事务需要回滚，主逻辑自然也不能提交了。</p>
+
+                            <p>看到这里，修复方式就很明确了，想办法让子逻辑在独立事务中运行，也就是改一下 SubUserService 注册子用户的方法，为注解加上 propagation = Propagation.REQUIRES_NEW 来设置 REQUIRES_NEW 方式的事务传播策略，也就是执行到这个方法时需要开启新的事务，并挂起当前事务：</p>
+
+                            <pre><code>@Transactional(propagation = Propagation.REQUIRES_NEW)
+
+
+
+public void createSubUserWithExceptionRight(UserEntity entity) {
+
+
+
+    log.info(&quot;createSubUserWithExceptionRight start&quot;);
+
+
+
+    userRepository.save(entity);
+
+
+
+    throw new RuntimeException(&quot;invalid status&quot;);
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>主方法没什么变化，同样需要捕获异常，防止异常漏出去导致主事务回滚，重新命名为 createUserRight：</p>
+
+                            <pre><code>@Transactional
+
+
+
+public void createUserRight(UserEntity entity) {
+
+
+
+    createMainUser(entity);
+
+
+
+    try{
+
+
+
+        subUserService.createSubUserWithExceptionRight(entity);
+
+
+
+    } catch (Exception ex) {
+
+
+
+        // 捕获异常，防止主方法回滚
+
+
+
+        log.error(&quot;create sub user error:{}&quot;, ex.getMessage());
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>改造后，重新运行程序可以看到如下的关键日志：</p>
+
+                            <p>第 1 行日志提示我们针对 createUserRight 方法开启了主方法的事务；</p>
+
+                            <p>第 2 行日志提示创建主用户完成；</p>
+
+                            <p>第 3 行日志可以看到主事务挂起了，开启了一个新的事务，针对 createSubUserWithExceptionRight 方案，也就是我们的创建子用户的逻辑；</p>
+
+                            <p>第 4 行日志提示子方法事务回滚；</p>
+
+                            <p>第 5 行日志提示子方法事务完成，继续主方法之前挂起的事务；</p>
+
+                            <p>第 6 行日志提示主方法捕获到了子方法的异常；</p>
+
+                            <p>第 8 行日志提示主方法的事务提交了，随后我们在 Controller 里没看到静默回滚的异常。</p>
+
+                            <pre><code>[23:17:20.935] [http-nio-45678-exec-1] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :370 ] - Creating new transaction with name [org.geekbang.time.commonmistakes.transaction.demo3.UserService.createUserRight]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+
+
+
+[23:17:21.079] [http-nio-45678-exec-1] [INFO ] [.g.t.c.transaction.demo3.UserService:55  ] - createMainUser finish
+
+
+
+[23:17:21.082] [http-nio-45678-exec-1] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :420 ] - Suspending current transaction, creating new transaction with name [org.geekbang.time.commonmistakes.transaction.demo3.SubUserService.createSubUserWithExceptionRight]
+
+
+
+[23:17:21.153] [http-nio-45678-exec-1] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :834 ] - Initiating transaction rollback
+
+
+
+[23:17:21.160] [http-nio-45678-exec-1] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :1009] - Resuming suspended transaction after completion of inner transaction
+
+
+
+[23:17:21.161] [http-nio-45678-exec-1] [ERROR] [.g.t.c.transaction.demo3.UserService:49  ] - create sub user error:invalid status
+
+
+
+[23:17:21.161] [http-nio-45678-exec-1] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :741 ] - Initiating transaction commit
+
+
+
+[23:17:21.161] [http-nio-45678-exec-1] [DEBUG] [o.s.orm.jpa.JpaTransactionManager       :529 ] - Committing JPA transaction on EntityManager [SessionImpl(396441411&lt;open&gt;)]
+
+
+
+</code></pre>
+
+                            <p>运行测试程序看到如下结果，getUserCount 得到的用户数量为 1，代表只有一个用户也就是主用户注册完成了，符合预期：</p>
+
+                            <p><img src="assets/3bd9c32b5144025f1a2de5b4ec436ff8.png" alt="img" /></p>
+
+                            <h2>重点回顾</h2>
+
+                            <p>今天，我针对业务代码中最常见的使用数据库事务的方式，即 Spring 声明式事务，与你总结了使用上可能遇到的三类坑，包括：</p>
+
+                            <p>第一，因为配置不正确，导致方法上的事务没生效。我们务必确认调用 @Transactional 注解标记的方法是 public 的，并且是通过 Spring 注入的 Bean 进行调用的。</p>
+
+                            <p>第二，因为异常处理不正确，导致事务虽然生效但出现异常时没回滚。Spring 默认只会对标记 @Transactional 注解的方法出现了 RuntimeException 和 Error 的时候回滚，如果我们的方法捕获了异常，那么需要通过手动编码处理事务回滚。如果希望 Spring 针对其他异常也可以回滚，那么可以相应配置 @Transactional 注解的 rollbackFor 和 noRollbackFor 属性来覆盖其默认设置。</p>
+
+                            <p>第三，如果方法涉及多次数据库操作，并希望将它们作为独立的事务进行提交或回滚，那么我们需要考虑进一步细化配置事务传播方式，也就是 @Transactional 注解的 Propagation 属性。</p>
+
+                            <p>可见，正确配置事务可以提高业务项目的健壮性。但，又因为健壮性问题往往体现在异常情况或一些细节处理上，很难在主流程的运行和测试中发现，导致业务代码的事务处理逻辑往往容易被忽略，因此我在代码审查环节一直很关注事务是否正确处理。</p>
+
+                            <p>如果你无法确认事务是否真正生效，是否按照预期的逻辑进行，可以尝试打开 Spring 的部分 Debug 日志，通过事务的运作细节来验证。也建议你在单元测试时尽量覆盖多的异常场景，这样在重构时，也能及时发现因为方法的调用方式、异常处理逻辑的调整，导致的事务失效问题。</p>
+
+                            <p>今天用到的代码，我都放在了 GitHub 上，你可以点击这个链接查看。</p>
+
+                            <h2>思考与讨论</h2>
+
+                            <p>考虑到 Demo 的简洁，文中所有数据访问使用的都是 Spring Data JPA。国内大多数互联网业务项目是使用 MyBatis 进行数据访问的，使用 MyBatis 配合 Spring 的声明式事务也同样需要注意文中提到的这些点。你可以尝试把今天的 Demo 改为 MyBatis 做数据访问实现，看看日志中是否可以体现出这些坑。</p>
+
+                            <p>在第一节中我们提到，如果要针对 private 方法启用事务，动态代理方式的 AOP 不可行，需要使用静态织入方式的 AOP，也就是在编译期间织入事务增强代码，可以配置 Spring 框架使用 AspectJ 来实现 AOP。你能否参阅 Spring 的文档“Using @Transactional with AspectJ”试试呢？注意：AspectJ 配合 lombok 使用，还可能会踩一些坑。</p>
+
+                            <p>有关数据库事务，你还遇到过其他坑吗？我是朱晔，欢迎在评论区与我留言分享，也欢迎你把这篇文章分享给你的朋友或同事，一起交流。</p>
+
+                        </div>
+
+                    </div>
+                    <div class="book-post">
+
+                        <p id="tip" align="center"></p>
+
+                        <div><h1>07 数据库索引：索引并不是万能药</h1>
+
+                            <p>你好，我是朱晔。今天，我要和你分享的主题是，数据库的索引并不是万能药。</p>
+
+                            <p>几乎所有的业务项目都会涉及数据存储，虽然当前各种 NoSQL 和文件系统大行其道，但 MySQL 等关系型数据库因为满足 ACID、可靠性高、对开发友好等特点，仍然最常被用于存储重要数据。在关系型数据库中，索引是优化查询性能的重要手段。</p>
+
+                            <p>为此，我经常看到一些同学一遇到查询性能问题，就盲目要求运维或 DBA 给数据表相关字段创建大量索引。显然，这种想法是错误的。今天，我们就以 MySQL 为例来深入理解下索引的原理，以及相关误区。</p>
+
+                            <h2>InnoDB 是如何存储数据的？</h2>
+
+                            <p>MySQL 把数据存储和查询操作抽象成了存储引擎，不同的存储引擎，对数据的存储和读取方式各不相同。MySQL 支持多种存储引擎，并且可以以表为粒度设置存储引擎。因为支持事务，我们最常使用的是 InnoDB。为方便理解下面的内容，我先和你简单说说 InnoDB 是如何存储数据的。</p>
+
+                            <p>虽然数据保存在磁盘中，但其处理是在内存中进行的。为了减少磁盘随机读取次数，InnoDB 采用页而不是行的粒度来保存数据，即数据被分成若干页，以页为单位保存在磁盘中。InnoDB 的页大小，一般是 16KB。</p>
+
+                            <p>各个数据页组成一个双向链表，每个数据页中的记录按照主键顺序组成单向链表；每一个数据页中有一个页目录，方便按照主键查询记录。数据页的结构如下：</p>
+
+                            <p><img src="assets/1302b4a8d877609486c9a9eed2d8d8d1.png" alt="img" /></p>
+
+                            <p>页目录通过槽把记录分成不同的小组，每个小组有若干条记录。如图所示，记录中最前面的小方块中的数字，代表的是当前分组的记录条数，最小和最大的槽指向 2 个特殊的伪记录。有了槽之后，我们按照主键搜索页中记录时，就可以采用二分法快速搜索，无需从最小记录开始遍历整个页中的记录链表。</p>
+
+                            <p>举一个例子，如果要搜索主键（PK）=15 的记录：</p>
+
+                            <p>先二分得出槽中间位是 (0+6)/2=3，看到其指向的记录是 12＜15，所以需要从 #3 槽后继续搜索记录；</p>
+
+                            <p>再使用二分搜索出 #3 槽和 #6 槽的中间位是 (3+6)/2=4.5 取整 4，#4 槽对应的记录是 16＞15，所以记录一定在 #4 槽中；</p>
+
+                            <p>再从 #3 槽指向的 12 号记录开始向下搜索 3 次，定位到 15 号记录。</p>
+
+                            <p>理解了 InnoDB 存储数据的原理后，我们就可以继续学习 MySQL 索引相关的原理和坑了。</p>
+
+                            <h2>聚簇索引和二级索引</h2>
+
+                            <p>说到索引，页目录就是最简单的索引，是通过对记录进行一级分组来降低搜索的时间复杂度。但，这样能够降低的时间复杂度数量级，非常有限。当有无数个数据页来存储表数据的时候，我们就需要考虑如何建立合适的索引，才能方便定位记录所在的页。</p>
+
+                            <p>为了解决这个问题，InnoDB 引入了 B+ 树。如下图所示，B+ 树是一棵倒过来的树：</p>
+
+                            <p><img src="assets/e76adf029e63a045e05956039f81f265.png" alt="img" /></p>
+
+                            <p>B+ 树的特点包括：</p>
+
+                            <p>最底层的节点叫作叶子节点，用来存放数据；</p>
+
+                            <p>其他上层节点叫作非叶子节点，仅用来存放目录项，作为索引；</p>
+
+                            <p>非叶子节点分为不同层次，通过分层来降低每一层的搜索量；</p>
+
+                            <p>所有节点按照索引键大小排序，构成一个双向链表，加速范围查找。</p>
+
+                            <p>因此，InnoDB 使用 B+ 树，既可以保存实际数据，也可以加速数据搜索，这就是聚簇索引。如果把上图叶子节点下面方块中的省略号看作实际数据的话，那么它就是聚簇索引的示意图。由于数据在物理上只会保存一份，所以包含实际数据的聚簇索引只能有一个。</p>
+
+                            <p>InnoDB 会自动使用主键（唯一定义一条记录的单个或多个字段）作为聚簇索引的索引键（如果没有主键，就选择第一个不包含 NULL 值的唯一列）。上图方框中的数字代表了索引键的值，对聚簇索引而言一般就是主键。</p>
+
+                            <p>我们再看看 B+ 树如何实现快速查找主键。比如，我们要搜索 PK=4 的数据，通过根节点中的索引可以知道数据在第一个记录指向的 2 号页中，通过 2 号页的索引又可以知道数据在 5 号页，5 号页就是实际的数据页，然后再通过二分法查找页目录马上可以找到记录的指针。</p>
+
+                            <p>为了实现非主键字段的快速搜索，就引出了二级索引，也叫作非聚簇索引、辅助索引。二级索引，也是利用的 B+ 树的数据结构，如下图所示：</p>
+
+                            <p><img src="assets/4be8f22d993bd92878209d00a1264b3a.png" alt="img" /></p>
+
+                            <p>这次二级索引的叶子节点中保存的不是实际数据，而是主键，获得主键值后去聚簇索引中获得数据行。这个过程就叫作回表。</p>
+
+                            <p>举个例子，有个索引是针对用户名字段创建的，索引记录上面方块中的字母是用户名，按照顺序形成链表。如果我们要搜索用户名为 b 的数据，经过两次定位可以得出在 #5 数据页中，查出所有的主键为 7 和 6，再拿着这两个主键继续使用聚簇索引进行两次回表得到完整数据。</p>
+
+                            <h2>考虑额外创建二级索引的代价</h2>
+
+                            <p>创建二级索引的代价，主要表现在维护代价、空间代价和回表代价三个方面。接下来，我就与你仔细分析下吧。</p>
+
+                            <p>首先是维护代价。创建 N 个二级索引，就需要再创建 N 棵 B+ 树，新增数据时不仅要修改聚簇索引，还需要修改这 N 个二级索引。</p>
+
+                            <p>我们通过实验测试一下创建索引的代价。假设有一个 person 表，有主键 ID，以及 name、score、create_time 三个字段：</p>
+
+                            <pre><code>CREATE TABLE `person` (
+
+
+
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+
+
+
+  `name` varchar(255) NOT NULL,
+
+
+
+  `score` int(11) NOT NULL,
+
+
+
+  `create_time` timestamp NOT NULL,
+
+
+
+  PRIMARY KEY (`id`)
+
+
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+</code></pre>
+
+                            <p>通过下面的存储过程循环创建 10 万条测试数据，我的机器的耗时是 140 秒（本文的例子均在 MySQL 5.7.26 中执行）：</p>
+
+                            <pre><code>CREATE DEFINER=`root`@`%` PROCEDURE `insert_person`()
+
+
+
+begin
+
+
+
+    declare c_id integer default 1;
+
+
+
+    while c_id&lt;=100000 do
+
+
+
+    insert into person values(c_id, concat('name',c_id), c_id+100, date_sub(NOW(), interval c_id second));
+
+
+
+    set c_id=c_id+1;
+
+
+
+    end while;
+
+
+
+end
+
+
+
+</code></pre>
+
+                            <p>如果再创建两个索引，一个是 name 和 score 构成的联合索引，另一个是单一列 create_time 的索引，那么创建 10 万条记录的耗时提高到 154 秒：</p>
+
+                            <pre><code>KEY `name_score` (`name`,`score`) USING BTREE,
+
+
+
+KEY `create_time` (`create_time`) USING BTREE
+
+
+
+</code></pre>
+
+                            <p>这里，我再额外提一下，页中的记录都是按照索引值从小到大的顺序存放的，新增记录就需要往页中插入数据，现有的页满了就需要新创建一个页，把现有页的部分数据移过去，这就是页分裂；如果删除了许多数据使得页比较空闲，还需要进行页合并。页分裂和合并，都会有 IO 代价，并且可能在操作过程中产生死锁。</p>
+
+                            <p>你可以查看这个文档，以进一步了解如何设置合理的合并阈值，来平衡页的空闲率和因为再次页分裂产生的代价。</p>
+
+                            <p>其次是空间代价。虽然二级索引不保存原始数据，但要保存索引列的数据，所以会占用更多的空间。比如，person 表创建了两个索引后，使用下面的 SQL 查看数据和索引占用的磁盘：</p>
+
+                            <pre><code>DATA_LENGTH, INDEX_LENGTH FROM information_schema.TABLES WHERE TABLE_NAME='person'
+
+
+
+</code></pre>
+
+                            <p>结果显示，数据本身只占用了 4.7M，而索引占用了 8.4M。</p>
+
+                            <p>最后是回表的代价。二级索引不保存原始数据，通过索引找到主键后需要再查询聚簇索引，才能得到我们要的数据。比如，使用 SELECT * 按照 name 字段查询用户，使用 EXPLAIN 查看执行计划：</p>
+
+                            <pre><code>EXPLAIN SELECT * FROM person WHERE NAME='name1'
+
+
+
+</code></pre>
+
+                            <p>执行计划如下，可以发现：</p>
+
+                            <p><img src="assets/f380ee99efb997a8520d16f5433f7e21.png" alt="img" /></p>
+
+                            <p>key 字段代表实际走的是哪个索引，其值是 name_score，说明走的是 name_score 这个索引。</p>
+
+                            <p>type 字段代表了访问表的方式，其值 ref 说明是二级索引等值匹配，符合我们的查询。</p>
+
+                            <p>把 SQL 中的 * 修改为 NAME 和 SCORE，也就是 SELECT name_score 联合索引包含的两列：</p>
+
+                            <pre><code>EXPLAIN SELECT NAME,SCORE FROM person WHERE NAME='name1'
+
+
+
+</code></pre>
+
+                            <p>再来看看执行计划：</p>
+
+                            <p><img src="assets/88809b6f547238596d141eab27f3d7e7.png" alt="img" /></p>
+
+                            <p>可以看到，Extra 列多了一行 Using index 的提示，证明这次查询直接查的是二级索引，免去了回表。</p>
+
+                            <p>原因很简单，联合索引中其实保存了多个索引列的值，对于页中的记录先按照字段 1 排序，如果相同再按照字段 2 排序，如图所示：</p>
+
+                            <p><img src="assets/803c3e6a8df1d6031db70473dc948472.png" alt="img" /></p>
+
+                            <p>图中，叶子节点每一条记录的第一和第二个方块是索引列的数据，第三个方块是记录的主键。如果我们需要查询的是索引列索引或联合索引能覆盖的数据，那么查询索引本身已经“覆盖”了需要的数据，不再需要回表查询。因此，这种情况也叫作索引覆盖。我会在最后一小节介绍如何查看不同查询的成本，和你一起看看索引覆盖和索引查询后回表的代价差异。</p>
+
+                            <p>最后，我和你总结下关于索引开销的最佳实践吧。</p>
+
+                            <p>第一，无需一开始就建立索引，可以等到业务场景明确后，或者是数据量超过 1 万、查询变慢后，再针对需要查询、排序或分组的字段创建索引。创建索引后可以使用 EXPLAIN 命令，确认查询是否可以使用索引。我会在下一小节展开说明。</p>
+
+                            <p>第二，尽量索引轻量级的字段，比如能索引 int 字段就不要索引 varchar 字段。索引字段也可以是部分前缀，在创建的时候指定字段索引长度。针对长文本的搜索，可以考虑使用 Elasticsearch 等专门用于文本搜索的索引数据库。</p>
+
+                            <p>第三，尽量不要在 SQL 语句中 SELECT *，而是 SELECT 必要的字段，甚至可以考虑使用联合索引来包含我们要搜索的字段，既能实现索引加速，又可以避免回表的开销。</p>
+
+                            <h2>不是所有针对索引列的查询都能用上索引</h2>
+
+                            <p>在上一个案例中，我创建了一个 name+score 的联合索引，仅搜索 name 时就能够用上这个联合索引。这就引出两个问题：</p>
+
+                            <p>是不是建了索引一定可以用上？</p>
+
+                            <p>怎么选择创建联合索引还是多个独立索引？</p>
+
+                            <p>首先，我们通过几个案例来分析一下索引失效的情况。</p>
+
+                            <p>第一，索引只能匹配列前缀。比如下面的 LIKE 语句，搜索 name 后缀为 name123 的用户无法走索引，执行计划的 type=ALL 代表了全表扫描：</p>
+
+                            <pre><code>EXPLAIN SELECT * FROM person WHERE NAME LIKE '%name123' LIMIT 100
+
+
+
+</code></pre>
+
+                            <p><img src="assets/e1033c6534938f8381fce051fb8ef8c9.png" alt="img" /></p>
+
+                            <p>把百分号放到后面走前缀匹配，type=range 表示走索引扫描，key=name_score 看到实际走了 name_score 索引：</p>
+
+                            <pre><code>EXPLAIN SELECT * FROM person WHERE NAME LIKE 'name123%' LIMIT 100
+
+
+
+</code></pre>
+
+                            <p><img src="assets/95074c69e68039738046fd4275c4d85a.png" alt="img" /></p>
+
+                            <p>原因很简单，索引 B+ 树中行数据按照索引值排序，只能根据前缀进行比较。如果要按照后缀搜索也希望走索引的话，并且永远只是按照后缀搜索的话，可以把数据反过来存，用的时候再倒过来。</p>
+
+                            <p>第二，条件涉及函数操作无法走索引。比如搜索条件用到了 LENGTH 函数，肯定无法走索引：</p>
+
+                            <pre><code>EXPLAIN SELECT * FROM person WHERE LENGTH(NAME)=7
+
+
+
+</code></pre>
+
+                            <p><img src="assets/f1eadcdd35b96c9f982115e528ee6808.png" alt="img" /></p>
+
+                            <p>同样的原因，索引保存的是索引列的原始值，而不是经过函数计算后的值。如果需要针对函数调用走数据库索引的话，只能保存一份函数变换后的值，然后重新针对这个计算列做索引。</p>
+
+                            <p>第三，联合索引只能匹配左边的列。也就是说，虽然对 name 和 score 建了联合索引，但是仅按照 score 列搜索无法走索引：</p>
+
+                            <pre><code>EXPLAIN SELECT * FROM person WHERE SCORE&gt;45678
+
+
+
+</code></pre>
+
+                            <p><img src="assets/0d3d1a4ad0ae545f0264be3de781e0e3.png" alt="img" /></p>
+
+                            <p>原因也很简单，在联合索引的情况下，数据是按照索引第一列排序，第一列数据相同时才会按照第二列排序。也就是说，如果我们想使用联合索引中尽可能多的列，查询条件中的各个列必须是联合索引中从最左边开始连续的列。如果我们仅仅按照第二列搜索，肯定无法走索引。尝试把搜索条件加入 name 列，可以看到走了 name_score 索引：</p>
+
+                            <pre><code>EXPLAIN SELECT * FROM person WHERE SCORE&gt;45678 AND NAME LIKE 'NAME45%'
+
+
+
+</code></pre>
+
+                            <p><img src="assets/77c946fcf49059d40673cf6075119d17.png" alt="img" /></p>
+
+                            <p>需要注意的是，因为有查询优化器，所以 name 作为 WHERE 子句的第几个条件并不是很重要。</p>
+
+                            <p>现在回到最开始的两个问题。</p>
+
+                            <p>是不是建了索引一定可以用上？并不是，只有当查询能符合索引存储的实际结构时，才能用上。这里，我只给出了三个肯定用不上索引的反例。其实，有的时候即使可以走索引，MySQL 也不一定会选择使用索引。我会在下一小节展开这一点。</p>
+
+                            <p>怎么选择建联合索引还是多个独立索引？如果你的搜索条件经常会使用多个字段进行搜索，那么可以考虑针对这几个字段建联合索引；同时，针对多字段建立联合索引，使用索引覆盖的可能更大。如果只会查询单个字段，可以考虑建单独的索引，毕竟联合索引保存了不必要字段也有成本。</p>
+
+                            <h2>数据库基于成本决定是否走索引</h2>
+
+                            <p>通过前面的案例，我们可以看到，查询数据可以直接在聚簇索引上进行全表扫描，也可以走二级索引扫描后到聚簇索引回表。看到这里，你不禁要问了，MySQL 到底是怎么确定走哪种方案的呢。</p>
+
+                            <p>其实，MySQL 在查询数据之前，会先对可能的方案做执行计划，然后依据成本决定走哪个执行计划。</p>
+
+                            <p>这里的成本，包括 IO 成本和 CPU 成本：</p>
+
+                            <p>IO 成本，是从磁盘把数据加载到内存的成本。默认情况下，读取数据页的 IO 成本常数是 1（也就是读取 1 个页成本是 1）。</p>
+
+                            <p>CPU 成本，是检测数据是否满足条件和排序等 CPU 操作的成本。默认情况下，检测记录的成本是 0.2。</p>
+
+                            <p>基于此，我们分析下全表扫描的成本。</p>
+
+                            <p>全表扫描，就是把聚簇索引中的记录依次和给定的搜索条件做比较，把符合搜索条件的记录加入结果集的过程。那么，要计算全表扫描的代价需要两个信息：</p>
+
+                            <p>聚簇索引占用的页面数，用来计算读取数据的 IO 成本；</p>
+
+                            <p>表中的记录数，用来计算搜索的 CPU 成本。</p>
+
+                            <p>那么，MySQL 是实时统计这些信息的吗？其实并不是，MySQL 维护了表的统计信息，可以使用下面的命令查看：</p>
+
+                            <pre><code>SHOW TABLE STATUS LIKE 'person'
+
+
+
+</code></pre>
+
+                            <p>输出如下：</p>
+
+                            <p><img src="assets/5554af3acf1005fac1b6a494b6578732.png" alt="img" /></p>
+
+                            <p>可以看到：</p>
+
+                            <p>总行数是 100086 行（之前 EXPLAIN 时，也看到 rows 为 100086）。你可能说，person 表不是有 10 万行记录吗，为什么这里多了 86 行？其实，MySQL 的统计信息是一个估算，其统计方式比较复杂我就不再展开了。但不妨碍我们根据这个值估算 CPU 成本，是 100086*0.2=20017 左右。</p>
+
+                            <p>数据长度是 4734976 字节。对于 InnoDB 来说，这就是聚簇索引占用的空间，等于聚簇索引的页面数量 * 每个页面的大小。InnoDB 每个页面的大小是 16KB，大概计算出页面数量是 289，因此 IO 成本是 289 左右。</p>
+
+                            <p>所以，全表扫描的总成本是 20306 左右。</p>
+
+                            <p>接下来，我还是用 person 表这个例子，和你分析下 MySQL 如何基于成本来制定执行计划。现在，我要用下面的 SQL 查询 name&gt;‘name84059’ AND create_time&gt;‘2020-01-24 05:00:00’</p>
+
+                            <pre><code>EXPLAIN SELECT * FROM person WHERE NAME &gt;'name84059' AND create_time&gt;'2020-01-24 05:00:00'
+
+
+
+</code></pre>
+
+                            <p>其执行计划是全表扫描：</p>
+
+                            <p><img src="assets/54c6e60d390b54d5e1ae1e8bc2451fa8.png" alt="img" /></p>
+
+                            <p>只要把 create_time 条件中的 5 点改为 6 点就变为走索引了，并且走的是 create_time 索引而不是 name_score 联合索引：</p>
+
+                            <p><img src="assets/2501093bce47944d4a9c2b090c2f8baa.png" alt="img" /></p>
+
+                            <p>我们可以得到两个结论：</p>
+
+                            <p>MySQL 选择索引，并不是按照 WHERE 条件中列的顺序进行的；</p>
+
+                            <p>即便列有索引，甚至有多个可能的索引方案，MySQL 也可能不走索引。</p>
+
+                            <p>其原因就是，MySQL 并不是猜拳决定是否走索引的，而是根据成本来判断的。虽然表的统计信息不完全准确，但足够用于策略的判断了。</p>
+
+                            <p>不过，有时会因为统计信息的不准确或成本估算的问题，实际开销会和 MySQL 统计出来的差距较大，导致 MySQL 选择错误的索引或是直接选择走全表扫描，这个时候就需要人工干预，使用强制索引了。比如，像这样强制走 name_score 索引：</p>
+
+                            <pre><code>EXPLAIN SELECT * FROM person FORCE INDEX(name_score) WHERE NAME &gt;'name84059' AND create_time&gt;'2020-01-24 05:00:00'
+
+
+
+</code></pre>
+
+                            <p>我们介绍了 MySQL 会根据成本选择执行计划，也通过 EXPLAIN 知道了优化器最终会选择怎样的执行计划，但 MySQL 如何制定执行计划始终是一个黑盒。那么，有没有什么办法可以了解各种执行计划的成本，以及 MySQL 做出选择的依据呢？</p>
+
+                            <p>在 MySQL 5.6 及之后的版本中，我们可以使用 optimizer trace 功能查看优化器生成执行计划的整个过程。有了这个功能，我们不仅可以了解优化器的选择过程，更可以了解每一个执行环节的成本，然后依靠这些信息进一步优化查询。</p>
+
+                            <p>如下代码所示，打开 optimizer_trace 后，再执行 SQL 就可以查询 information_schema.OPTIMIZER_TRACE 表查看执行计划了，最后可以关闭 optimizer_trace 功能：</p>
+
+                            <pre><code>SET optimizer_trace=&quot;enabled=on&quot;;
+
+
+
+SELECT * FROM person WHERE NAME &gt;'name84059' AND create_time&gt;'2020-01-24 05:00:00';
+
+
+
+SELECT * FROM information_schema.OPTIMIZER_TRACE;
+
+
+
+SET optimizer_trace=&quot;enabled=off&quot;;
+
+
+
+</code></pre>
+
+                            <p>对于按照 create_time&gt;'2020-01-24 05:00:00’条件走全表扫描的 SQL，我从 OPTIMIZER_TRACE 的执行结果中，摘出了几个重要片段来重点分析：</p>
+
+                            <p>使用 name_score 对 name84059&lt;name 条件进行索引扫描需要扫描 25362 行，成本是 30435，因此最终没有选择这个方案。这里的 30435 是查询二级索引的 IO 成本和 CPU 成本之和，再加上回表查询聚簇索引的 IO 成本和 CPU 成本之和，我就不再具体分析了：</p>
+
+                            <pre><code>{
+
+
+
+  &quot;index&quot;: &quot;name_score&quot;,
+
+
+
+  &quot;ranges&quot;: [
+
+
+
+    &quot;name84059 &lt; name&quot;
+
+
+
+  ],
+
+
+
+  &quot;rows&quot;: 25362,
+
+
+
+  &quot;cost&quot;: 30435,
+
+
+
+  &quot;chosen&quot;: false,
+
+
+
+  &quot;cause&quot;: &quot;cost&quot;
+
+
+
+},
+
+
+
+</code></pre>
+
+                            <p>使用 create_time 进行索引扫描需要扫描 23758 行，成本是 28511，同样因为成本原因没有选择这个方案：</p>
+
+                            <pre><code>{
+
+
+
+  &quot;index&quot;: &quot;create_time&quot;,
+
+
+
+  &quot;ranges&quot;: [
+
+
+
+    &quot;0x5e2a79d0 &lt; create_time&quot;
+
+
+
+  ],
+
+
+
+  &quot;rows&quot;: 23758,
+
+
+
+  &quot;cost&quot;: 28511,
+
+
+
+  &quot;chosen&quot;: false,
+
+
+
+  &quot;cause&quot;: &quot;cost&quot;
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>最终选择了全表扫描方式作为执行计划。可以看到，全表扫描 100086 条记录的成本是 20306，和我们之前计算的一致，显然是小于其他两个方案的 28511 和 30435：</p>
+
+                            <pre><code>{
+
+
+
+  &quot;considered_execution_plans&quot;: [{
+
+
+
+    &quot;table&quot;: &quot;`person`&quot;,
+
+
+
+    &quot;best_access_path&quot;: {
+
+
+
+      &quot;considered_access_paths&quot;: [{
+
+
+
+        &quot;rows_to_scan&quot;: 100086,
+
+
+
+        &quot;access_type&quot;: &quot;scan&quot;,
+
+
+
+        &quot;resulting_rows&quot;: 100086,
+
+
+
+        &quot;cost&quot;: 20306,
+
+
+
+        &quot;chosen&quot;: true
+
+
+
+      }]
+
+
+
+    },
+
+
+
+    &quot;rows_for_plan&quot;: 100086,
+
+
+
+    &quot;cost_for_plan&quot;: 20306,
+
+
+
+    &quot;chosen&quot;: true
+
+
+
+  }]
+
+
+
+},
+
+
+
+</code></pre>
+
+                            <p>把 SQL 中的 create_time 条件从 05:00 改为 06:00，再次分析 OPTIMIZER_TRACE 可以看到，这次执行计划选择的是走 create_time 索引。因为是查询更晚时间的数据，走 create_time 索引需要扫描的行数从 23758 减少到了 16588。这次走这个索引的成本 19907 小于全表扫描的 20306，更小于走 name_score 索引的 30435：</p>
+
+                            <pre><code>{
+
+
+
+  &quot;index&quot;: &quot;create_time&quot;,
+
+
+
+  &quot;ranges&quot;: [
+
+
+
+    &quot;0x5e2a87e0 &lt; create_time&quot;
+
+
+
+  ],
+
+
+
+  &quot;rows&quot;: 16588,
+
+
+
+  &quot;cost&quot;: 19907,
+
+
+
+  &quot;chosen&quot;: true
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>有关 optimizer trace 的更多信息，你可以参考MySQL 的文档。</p>
+
+                            <h2>重点回顾</h2>
+
+                            <p>今天，我先和你分析了 MySQL InnoDB 存储引擎页、聚簇索引和二级索引的结构，然后分析了关于索引的两个误区。</p>
+
+                            <p>第一个误区是，考虑到索引的维护代价、空间占用和查询时回表的代价，不能认为索引越多越好。索引一定是按需创建的，并且要尽可能确保足够轻量。一旦创建了多字段的联合索引，我们要考虑尽可能利用索引本身完成数据查询，减少回表的成本。</p>
+
+                            <p>第二个误区是，不能认为建了索引就一定有效，对于后缀的匹配查询、查询中不包含联合索引的第一列、查询条件涉及函数计算等情况无法使用索引。此外，即使 SQL 本身符合索引的使用条件，MySQL 也会通过评估各种查询方式的代价，来决定是否走索引，以及走哪个索引。</p>
+
+                            <p>因此，在尝试通过索引进行 SQL 性能优化的时候，务必通过执行计划或实际的效果来确认索引是否能有效改善性能问题，否则增加了索引不但没解决性能问题，还增加了数据库增删改的负担。如果对 EXPLAIN 给出的执行计划有疑问的话，你还可以利用 optimizer_trace 查看详细的执行计划做进一步分析。</p>
+
+                            <p>今天用到的代码，我都放在了 GitHub 上，你可以点击这个链接查看。</p>
+
+                            <h2>思考与讨论</h2>
+
+                            <p>在介绍二级索引代价时，我们通过 EXPLAIN 命令看到了索引覆盖和回表的两种情况。你能用 optimizer trace 来分析一下这两种情况的成本差异吗？</p>
+
+                            <p>索引除了可以用于加速搜索外，还可以在排序时发挥作用，你能通过 EXPLAIN 来证明吗？你知道，在什么情况下针对排序索引会失效吗？</p>
+
+                            <p>针对数据库索引，你还有什么心得吗？我是朱晔，欢迎在评论区与我留言分享，也欢迎你把这篇文章分享给你的朋友或同事，一起交流。</p>
+
+                        </div>
+
+                    </div>
+                    <div class="book-post">
+
+                        <p id="tip" align="center"></p>
+
+                        <div><h1>08 判等问题：程序里如何确定你就是你？</h1>
+
+                            <p>你好，我是朱晔。今天，我来和你聊聊程序里的判等问题。</p>
+
+                            <p>你可能会说，判等不就是一行代码的事情吗，有什么好说的。但，这一行代码如果处理不当，不仅会出现 Bug，还可能会引起内存泄露等问题。涉及判等的 Bug，即使是使用 == 这种错误的判等方式，也不是所有时候都会出问题。所以类似的判等问题不太容易发现，可能会被隐藏很久。</p>
+
+                            <p>今天，我就 equals、compareTo 和 Java 的数值缓存、字符串驻留等问题展开讨论，希望你可以理解其原理，彻底消除业务代码中的相关 Bug。</p>
+
+                            <h2>注意 equals 和 == 的区别</h2>
+
+                            <p>在业务代码中，我们通常使用 equals 或 == 进行判等操作。equals 是方法而 == 是操作符，它们的使用是有区别的：</p>
+
+                            <p>对基本类型，比如 int、long，进行判等，只能使用 ==，比较的是直接值。因为基本类型的值就是其数值。</p>
+
+                            <p>对引用类型，比如 Integer、Long 和 String，进行判等，需要使用 equals 进行内容判等。因为引用类型的直接值是指针，使用 == 的话，比较的是指针，也就是两个对象在内存中的地址，即比较它们是不是同一个对象，而不是比较对象的内容。</p>
+
+                            <p>这就引出了我们必须必须要知道的第一个结论：比较值的内容，除了基本类型只能使用 == 外，其他类型都需要使用 equals。</p>
+
+                            <p>在开篇我提到了，即使使用 == 对 Integer 或 String 进行判等，有些时候也能得到正确结果。这又是为什么呢？</p>
+
+                            <p>我们用下面的测试用例深入研究下：</p>
+
+                            <p>使用 == 对两个值为 127 的直接赋值的 Integer 对象判等；</p>
+
+                            <p>使用 == 对两个值为 128 的直接赋值的 Integer 对象判等；</p>
+
+                            <p>使用 == 对一个值为 127 的直接赋值的 Integer 和另一个通过 new Integer 声明的值为 127 的对象判等；</p>
+
+                            <p>使用 == 对两个通过 new Integer 声明的值为 127 的对象判等；</p>
+
+                            <p>使用 == 对一个值为 128 的直接赋值的 Integer 对象和另一个值为 128 的 int 基本类型判等。</p>
+
+                            <pre><code>Integer a = 127; //Integer.valueOf(127)
+
+
+
+Integer b = 127; //Integer.valueOf(127)
+
+
+
+log.info(&quot;\nInteger a = 127;\n&quot; +
+
+
+
+        &quot;Integer b = 127;\n&quot; +
+
+
+
+        &quot;a == b ? {}&quot;,a == b);    // true
+
+
+
+Integer c = 128; //Integer.valueOf(128)
+
+
+
+Integer d = 128; //Integer.valueOf(128)
+
+
+
+log.info(&quot;\nInteger c = 128;\n&quot; +
+
+
+
+        &quot;Integer d = 128;\n&quot; +
+
+
+
+        &quot;c == d ? {}&quot;, c == d);   //false
+
+
+
+Integer e = 127; //Integer.valueOf(127)
+
+
+
+Integer f = new Integer(127); //new instance
+
+
+
+log.info(&quot;\nInteger e = 127;\n&quot; +
+
+
+
+        &quot;Integer f = new Integer(127);\n&quot; +
+
+
+
+        &quot;e == f ? {}&quot;, e == f);   //false
+
+
+
+Integer g = new Integer(127); //new instance
+
+
+
+Integer h = new Integer(127); //new instance
+
+
+
+log.info(&quot;\nInteger g = new Integer(127);\n&quot; +
+
+
+
+        &quot;Integer h = new Integer(127);\n&quot; +
+
+
+
+        &quot;g == h ? {}&quot;, g == h);  //false
+
+
+
+Integer i = 128; //unbox
+
+
+
+int j = 128;
+
+
+
+log.info(&quot;\nInteger i = 128;\n&quot; +
+
+
+
+        &quot;int j = 128;\n&quot; +
+
+
+
+        &quot;i == j ? {}&quot;, i == j); //true
+
+
+
+</code></pre>
+
+                            <p>通过运行结果可以看到，虽然看起来永远是在对 127 和 127、128 和 128 判等，但 == 却没有永远给我们 true 的答复。原因是什么呢？</p>
+
+                            <p>第一个案例中，编译器会把 Integer a = 127 转换为 Integer.valueOf(127)。查看源码可以发现，这个转换在内部其实做了缓存，使得两个 Integer 指向同一个对象，所以 == 返回 true。</p>
+
+                            <pre><code>public static Integer valueOf(int i) {
+
+
+
+    if (i &gt;= IntegerCache.low &amp;&amp; i &lt;= IntegerCache.high)
+
+
+
+        return IntegerCache.cache[i + (-IntegerCache.low)];
+
+
+
+    return new Integer(i);
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>第二个案例中，之所以同样的代码 128 就返回 false 的原因是，默认情况下会缓存[-128, 127]的数值，而 128 处于这个区间之外。设置 JVM 参数加上 -XX:AutoBoxCacheMax=1000 再试试，是不是就返回 true 了呢？</p>
+
+                            <pre><code>private static class IntegerCache {
+
+
+
+    static final int low = -128;
+
+
+
+    static final int high;
+
+
+
+
+
+
+
+    static {
+
+
+
+        // high value may be configured by property
+
+
+
+        int h = 127;
+
+
+
+        String integerCacheHighPropValue =
+
+
+
+            sun.misc.VM.getSavedProperty(&quot;java.lang.Integer.IntegerCache.high&quot;);
+
+
+
+        if (integerCacheHighPropValue != null) {
+
+
+
+            try {
+
+
+
+                int i = parseInt(integerCacheHighPropValue);
+
+
+
+                i = Math.max(i, 127);
+
+
+
+                // Maximum array size is Integer.MAX_VALUE
+
+
+
+                h = Math.min(i, Integer.MAX_VALUE - (-low) -1);
+
+
+
+            } catch( NumberFormatException nfe) {
+
+
+
+                // If the property cannot be parsed into an int, ignore it.
+
+
+
+            }
+
+
+
+        }
+
+
+
+        high = h;
+
+
+
+
+
+
+
+        cache = new Integer[(high - low) + 1];
+
+
+
+        int j = low;
+
+
+
+        for(int k = 0; k &lt; cache.length; k++)
+
+
+
+            cache[k] = new Integer(j++);
+
+
+
+
+
+
+
+        // range [-128, 127] must be interned (JLS7 5.1.7)
+
+
+
+        assert IntegerCache.high &gt;= 127;
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>第三和第四个案例中，New 出来的 Integer 始终是不走缓存的新对象。比较两个新对象，或者比较一个新对象和一个来自缓存的对象，结果肯定不是相同的对象，因此返回 false。</p>
+
+                            <p>第五个案例中，我们把装箱的 Integer 和基本类型 int 比较，前者会先拆箱再比较，比较的肯定是数值而不是引用，因此返回 true。</p>
+
+                            <p>看到这里，对于 Integer 什么时候是相同对象什么时候是不同对象，就很清楚了吧。但知道这些其实意义不大，因为在大多数时候，我们并不关心 Integer 对象是否是同一个，只需要记得比较 Integer 的值请使用 equals，而不是 ==（对于基本类型 int 的比较当然只能使用 ==）。</p>
+
+                            <p>其实，我们应该都知道这个原则，只是有的时候特别容易忽略。以我之前遇到过的一个生产事故为例，有这么一个枚举定义了订单状态和对于状态的描述：</p>
+
+                            <pre><code>enum StatusEnum {
+
+
+
+    CREATED(1000, &quot;已创建&quot;),
+
+
+
+    PAID(1001, &quot;已支付&quot;),
+
+
+
+    DELIVERED(1002, &quot;已送到&quot;),
+
+
+
+    FINISHED(1003, &quot;已完成&quot;);
+
+
+
+    private final Integer status; //注意这里的Integer
+
+
+
+    private final String desc;
+
+
+
+    StatusEnum(Integer status, String desc) {
+
+
+
+        this.status = status;
+
+
+
+        this.desc = desc;
+
+
+
+    }
+
+
+
+}
+
+</code></pre>
+
+                            <p>在业务代码中，开发同学使用了 == 对枚举和入参 OrderQuery 中的 status 属性进行判等：</p>
+
+                            <pre><code>@Data
+
+
+
+public class OrderQuery {
+
+
+
+    private Integer status;
+
+
+
+    private String name;
+
+
+
+}
+
+
+
+@PostMapping(&quot;enumcompare&quot;)
+
+
+
+public void enumcompare(@RequestBody OrderQuery orderQuery){
+
+
+
+    StatusEnum statusEnum = StatusEnum.DELIVERED;
+
+
+
+    log.info(&quot;orderQuery:{} statusEnum:{} result:{}&quot;, orderQuery, statusEnum, statusEnum.status == orderQuery.getStatus());
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>因为枚举和入参 OrderQuery 中的 status 都是包装类型，所以通过 == 判等肯定是有问题的。只是这个问题比较隐晦，究其原因在于：</p>
+
+                            <p>只看枚举的定义 CREATED(1000, “已创建”)，容易让人误解 status 值是基本类型；</p>
+
+                            <p>因为有 Integer 缓存机制的存在，所以使用 == 判等并不是所有情况下都有问题。在这次事故中，订单状态的值从 100 开始增长，程序一开始不出问题，直到订单状态超过 127 后才出现 Bug。</p>
+
+                            <p>在了解清楚为什么 Integer 使用 == 判等有时候也有效的原因之后，我们再来看看为什么 String 也有这个问题。我们使用几个用例来测试下：</p>
+
+                            <p>对两个直接声明的值都为 1 的 String 使用 == 判等；</p>
+
+                            <p>对两个 new 出来的值都为 2 的 String 使用 == 判等；</p>
+
+                            <p>对两个 new 出来的值都为 3 的 String 先进行 intern 操作，再使用 == 判等；</p>
+
+                            <p>对两个 new 出来的值都为 4 的 String 通过 equals 判等。</p>
+
+                            <pre><code>String a = &quot;1&quot;;
+
+
+
+String b = &quot;1&quot;;
+
+
+
+log.info(&quot;\nString a = \&quot;1\&quot;;\n&quot; +
+
+
+
+        &quot;String b = \&quot;1\&quot;;\n&quot; +
+
+
+
+        &quot;a == b ? {}&quot;, a == b); //true
+
+
+
+String c = new String(&quot;2&quot;);
+
+
+
+String d = new String(&quot;2&quot;);
+
+
+
+log.info(&quot;\nString c = new String(\&quot;2\&quot;);\n&quot; +
+
+
+
+        &quot;String d = new String(\&quot;2\&quot;);&quot; +
+
+
+
+        &quot;c == d ? {}&quot;, c == d); //false
+
+
+
+String e = new String(&quot;3&quot;).intern();
+
+
+
+String f = new String(&quot;3&quot;).intern();
+
+
+
+log.info(&quot;\nString e = new String(\&quot;3\&quot;).intern();\n&quot; +
+
+
+
+        &quot;String f = new String(\&quot;3\&quot;).intern();\n&quot; +
+
+
+
+        &quot;e == f ? {}&quot;, e == f); //true
+
+
+
+String g = new String(&quot;4&quot;);
+
+
+
+String h = new String(&quot;4&quot;);
+
+
+
+log.info(&quot;\nString g = new String(\&quot;4\&quot;);\n&quot; +
+
+
+
+        &quot;String h = new String(\&quot;4\&quot;);\n&quot; +
+
+
+
+        &quot;g == h ? {}&quot;, g.equals(h)); //true
+
+
+
+</code></pre>
+
+                            <p>在分析这个结果之前，我先和你说说 Java 的字符串常量池机制。首先要明确的是其设计初衷是节省内存。当代码中出现双引号形式创建字符串对象时，JVM 会先对这个字符串进行检查，如果字符串常量池中存在相同内容的字符串对象的引用，则将这个引用返回；否则，创建新的字符串对象，然后将这个引用放入字符串常量池，并返回该引用。这种机制，就是字符串驻留或池化。</p>
+
+                            <p>再回到刚才的例子，再来分析一下运行结果：</p>
+
+                            <p>第一个案例返回 true，因为 Java 的字符串驻留机制，直接使用双引号声明出来的两个 String 对象指向常量池中的相同字符串。</p>
+
+                            <p>第二个案例，new 出来的两个 String 是不同对象，引用当然不同，所以得到 false 的结果。</p>
+
+                            <p>第三个案例，使用 String 提供的 intern 方法也会走常量池机制，所以同样能得到 true。</p>
+
+                            <p>第四个案例，通过 equals 对值内容判等，是正确的处理方式，当然会得到 true。</p>
+
+                            <p>虽然使用 new 声明的字符串调用 intern 方法，也可以让字符串进行驻留，但在业务代码中滥用 intern，可能会产生性能问题。</p>
+
+                            <p>写代码测试一下，通过循环把 1 到 1000 万之间的数字以字符串形式 intern 后，存入一个 List：</p>
+
+                            <pre><code>List&lt;String&gt; list = new ArrayList&lt;&gt;();
+
+
+
+@GetMapping(&quot;internperformance&quot;)
+
+
+
+public int internperformance(@RequestParam(value = &quot;size&quot;, defaultValue = &quot;10000000&quot;)int size) {
+
+
+
+    //-XX:+PrintStringTableStatistics
+
+
+
+    //-XX:StringTableSize=10000000
+
+
+
+    long begin = System.currentTimeMillis();
+
+
+
+    list = IntStream.rangeClosed(1, size)
+
+
+
+            .mapToObj(i-&gt; String.valueOf(i).intern())
+
+
+
+            .collect(Collectors.toList());
+
+
+
+    log.info(&quot;size:{} took:{}&quot;, size, System.currentTimeMillis() - begin);
+
+
+
+    return list.size();
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>在启动程序时设置 JVM 参数 -XX:+PrintStringTableStatistic，程序退出时可以打印出字符串常量表的统计信息。调用接口后关闭程序，输出如下：</p>
+
+                            <pre><code>[11:01:57.770] [http-nio-45678-exec-2] [INFO ] [.t.c.e.d.IntAndStringEqualController:54  ] - size:10000000 took:44907
+
+
+
+StringTable statistics:
+
+
+
+Number of buckets       :     60013 =    480104 bytes, avg   8.000
+
+
+
+Number of entries       :  10030230 = 240725520 bytes, avg  24.000
+
+
+
+Number of literals      :  10030230 = 563005568 bytes, avg  56.131
+
+
+
+Total footprint         :           = 804211192 bytes
+
+
+
+Average bucket size     :   167.134
+
+
+
+Variance of bucket size :    55.808
+
+
+
+Std. dev. of bucket size:     7.471
+
+
+
+Maximum bucket size     :       198
+
+
+
+</code></pre>
+
+                            <p>可以看到，1000 万次 intern 操作耗时居然超过了 44 秒。</p>
+
+                            <p>其实，原因在于字符串常量池是一个固定容量的 Map。如果容量太小（Number of buckets=60013）、字符串太多（1000 万个字符串），那么每一个桶中的字符串数量会非常多，所以搜索起来就很慢。输出结果中的 Average bucket size=167，代表了 Map 中桶的平均长度是 167。</p>
+
+                            <p>解决方式是，设置 JVM 参数 -XX:StringTableSize，指定更多的桶。设置 -XX:StringTableSize=10000000 后，重启应用：</p>
+
+                            <pre><code>[11:09:04.475] [http-nio-45678-exec-1] [INFO ] [.t.c.e.d.IntAndStringEqualController:54  ] - size:10000000 took:5557
+
+
+
+StringTable statistics:
+
+
+
+Number of buckets       :  10000000 =  80000000 bytes, avg   8.000
+
+
+
+Number of entries       :  10030156 = 240723744 bytes, avg  24.000
+
+
+
+Number of literals      :  10030156 = 562999472 bytes, avg  56.131
+
+
+
+Total footprint         :           = 883723216 bytes
+
+
+
+Average bucket size     :     1.003
+
+
+
+Variance of bucket size :     1.587
+
+
+
+Std. dev. of bucket size:     1.260
+
+
+
+Maximum bucket size     :        10
+
+
+
+</code></pre>
+
+                            <p>可以看到，1000 万次调用耗时只有 5.5 秒，Average bucket size 降到了 1，效果明显。</p>
+
+                            <p>好了，是时候给出第二原则了：没事别轻易用 intern，如果要用一定要注意控制驻留的字符串的数量，并留意常量表的各项指标。</p>
+
+                            <h2>实现一个 equals 没有这么简单</h2>
+
+                            <p>如果看过 Object 类源码，你可能就知道，equals 的实现其实是比较对象引用：</p>
+
+                            <pre><code>public boolean equals(Object obj) {
+
+
+
+    return (this == obj);
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>之所以 Integer 或 String 能通过 equals 实现内容判等，是因为它们都重写了这个方法。比如，String 的 equals 的实现：</p>
+
+                            <pre><code>public boolean equals(Object anObject) {
+
+
+
+    if (this == anObject) {
+
+
+
+        return true;
+
+
+
+    }
+
+
+
+    if (anObject instanceof String) {
+
+
+
+        String anotherString = (String)anObject;
+
+
+
+        int n = value.length;
+
+
+
+        if (n == anotherString.value.length) {
+
+
+
+            char v1[] = value;
+
+
+
+            char v2[] = anotherString.value;
+
+
+
+            int i = 0;
+
+
+
+            while (n-- != 0) {
+
+
+
+                if (v1[i] != v2[i])
+
+
+
+                    return false;
+
+
+
+                i++;
+
+
+
+            }
+
+
+
+            return true;
+
+
+
+        }
+
+
+
+    }
+
+
+
+    return false;
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>对于自定义类型，如果不重写 equals 的话，默认就是使用 Object 基类的按引用的比较方式。我们写一个自定义类测试一下。</p>
+
+                            <p>假设有这样一个描述点的类 Point，有 x、y 和描述三个属性：</p>
+
+                            <pre><code>class Point {
+
+
+
+    private int x;
+
+
+
+    private int y;
+
+
+
+    private final String desc;
+
+
+
+    public Point(int x, int y, String desc) {
+
+
+
+        this.x = x;
+
+
+
+        this.y = y;
+
+
+
+        this.desc = desc;
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>定义三个点 p1、p2 和 p3，其中 p1 和 p2 的描述属性不同，p1 和 p3 的三个属性完全相同，并写一段代码测试一下默认行为：</p>
+
+                            <pre><code>Point p1 = new Point(1, 2, &quot;a&quot;);
+
+
+
+Point p2 = new Point(1, 2, &quot;b&quot;);
+
+
+
+Point p3 = new Point(1, 2, &quot;a&quot;);
+
+
+
+log.info(&quot;p1.equals(p2) ? {}&quot;, p1.equals(p2));
+
+
+
+log.info(&quot;p1.equals(p3) ? {}&quot;, p1.equals(p3));
+
+
+
+</code></pre>
+
+                            <p>通过 equals 方法比较 p1 和 p2、p1 和 p3 均得到 false，原因正如刚才所说，我们并没有为 Point 类实现自定义的 equals 方法，Object 超类中的 equals 默认使用 == 判等，比较的是对象的引用。</p>
+
+                            <p>我们期望的逻辑是，只要 x 和 y 这 2 个属性一致就代表是同一个点，所以写出了如下的改进代码，重写 equals 方法，把参数中的 Object 转换为 Point 比较其 x 和 y 属性：</p>
+
+                            <pre><code>class PointWrong {
+
+
+
+    private int x;
+
+
+
+    private int y;
+
+
+
+    private final String desc;
+
+
+
+    public PointWrong(int x, int y, String desc) {
+
+
+
+        this.x = x;
+
+
+
+        this.y = y;
+
+
+
+        this.desc = desc;
+
+
+
+    }
+
+
+
+    @Override
+
+
+
+    public boolean equals(Object o) {
+
+
+
+        PointWrong that = (PointWrong) o;
+
+
+
+        return x == that.x &amp;&amp; y == that.y;
+
+
+
+    }
+
+
+
+}
+
+</code></pre>
+
+                            <p>为测试改进后的 Point 是否可以满足需求，我们定义了三个用例：</p>
+
+                            <p>比较一个 Point 对象和 null；</p>
+
+                            <p>比较一个 Object 对象和一个 Point 对象；</p>
+
+                            <p>比较两个 x 和 y 属性值相同的 Point 对象。</p>
+
+                            <pre><code>PointWrong p1 = new PointWrong(1, 2, &quot;a&quot;);
+
+
+
+try {
+
+
+
+    log.info(&quot;p1.equals(null) ? {}&quot;, p1.equals(null));
+
+
+
+} catch (Exception ex) {
+
+
+
+    log.error(ex.getMessage());
+
+
+
+}
+
+
+
+Object o = new Object();
+
+
+
+try {
+
+
+
+    log.info(&quot;p1.equals(expression) ? {}&quot;, p1.equals(o));
+
+
+
+} catch (Exception ex) {
+
+
+
+    log.error(ex.getMessage());
+
+
+
+}
+
+
+
+PointWrong p2 = new PointWrong(1, 2, &quot;b&quot;);
+
+
+
+log.info(&quot;p1.equals(p2) ? {}&quot;, p1.equals(p2));
+
+
+
+</code></pre>
+
+                            <p>通过日志中的结果可以看到，第一次比较出现了空指针异常，第二次比较出现了类型转换异常，第三次比较符合预期输出了 true。</p>
+
+                            <pre><code>[17:54:39.120] [http-nio-45678-exec-1] [ERROR] [t.c.e.demo1.EqualityMethodController:32  ] - java.lang.NullPointerException
+
+
+
+[17:54:39.120] [http-nio-45678-exec-1] [ERROR] [t.c.e.demo1.EqualityMethodController:39  ] - java.lang.ClassCastException: java.lang.Object cannot be cast to org.geekbang.time.commonmistakes.equals.demo1.EqualityMethodController$PointWrong
+
+
+
+[17:54:39.120] [http-nio-45678-exec-1] [INFO ] [t.c.e.demo1.EqualityMethodController:43  ] - p1.equals(p2) ? true
+
+
+
+</code></pre>
+
+                            <p>通过这些失效的用例，我们大概可以总结出实现一个更好的 equals 应该注意的点：</p>
+
+                            <p>考虑到性能，可以先进行指针判等，如果对象是同一个那么直接返回 true；</p>
+
+                            <p>需要对另一方进行判空，空对象和自身进行比较，结果一定是 fasle；</p>
+
+                            <p>需要判断两个对象的类型，如果类型都不同，那么直接返回 false；</p>
+
+                            <p>确保类型相同的情况下再进行类型强制转换，然后逐一判断所有字段。</p>
+
+                            <p>修复和改进后的 equals 方法如下：</p>
+
+                            <pre><code>@Override
+
+
+
+public boolean equals(Object o) {
+
+
+
+    if (this == o) return true;
+
+
+
+    if (o == null || getClass() != o.getClass()) return false;
+
+
+
+    PointRight that = (PointRight) o;
+
+
+
+    return x == that.x &amp;&amp; y == that.y;
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>改进后的 equals 看起来完美了，但还没完。我们继续往下看。</p>
+
+                            <h2>hashCode 和 equals 要配对实现</h2>
+
+                            <p>我们来试试下面这个用例，定义两个 x 和 y 属性值完全一致的 Point 对象 p1 和 p2，把 p1 加入 HashSet，然后判断这个 Set 中是否存在 p2：</p>
+
+                            <pre><code>PointWrong p1 = new PointWrong(1, 2, &quot;a&quot;);
+
+
+
+PointWrong p2 = new PointWrong(1, 2, &quot;b&quot;);
+
+
+
+HashSet&lt;PointWrong&gt; points = new HashSet&lt;&gt;();
+
+
+
+points.add(p1);
+
+
+
+log.info(&quot;points.contains(p2) ? {}&quot;, points.contains(p2));
+
+
+
+</code></pre>
+
+                            <p>按照改进后的 equals 方法，这 2 个对象可以认为是同一个，Set 中已经存在了 p1 就应该包含 p2，但结果却是 false。</p>
+
+                            <p>出现这个 Bug 的原因是，散列表需要使用 hashCode 来定位元素放到哪个桶。如果自定义对象没有实现自定义的 hashCode 方法，就会使用 Object 超类的默认实现，得到的两个 hashCode 是不同的，导致无法满足需求。</p>
+
+                            <p>要自定义 hashCode，我们可以直接使用 Objects.hash 方法来实现，改进后的 Point 类如下：</p>
+
+                            <pre><code>class PointRight {
+
+
+
+    private final int x;
+
+
+
+    private final int y;
+
+
+
+    private final String desc;
+
+
+
+    ...
+
+
+
+    @Override
+
+
+
+    public boolean equals(Object o) {
+
+
+
+        ...
+
+
+
+    }
+
+
+
+    @Override
+
+
+
+    public int hashCode() {
+
+
+
+        return Objects.hash(x, y);
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>改进 equals 和 hashCode 后，再测试下之前的四个用例，结果全部符合预期。</p>
+
+                            <pre><code>[18:25:23.091] [http-nio-45678-exec-4] [INFO ] [t.c.e.demo1.EqualityMethodController:54  ] - p1.equals(null) ? false
+
+
+
+[18:25:23.093] [http-nio-45678-exec-4] [INFO ] [t.c.e.demo1.EqualityMethodController:61  ] - p1.equals(expression) ? false
+
+
+
+[18:25:23.094] [http-nio-45678-exec-4] [INFO ] [t.c.e.demo1.EqualityMethodController:67  ] - p1.equals(p2) ? true
+
+
+
+[18:25:23.094] [http-nio-45678-exec-4] [INFO ] [t.c.e.demo1.EqualityMethodController:71  ] - points.contains(p2) ? true
+
+
+
+</code></pre>
+
+                            <p>看到这里，你可能会觉得自己实现 equals 和 hashCode 很麻烦，实现 equals 有很多注意点而且代码量很大。不过，实现这两个方法也有简单的方式，一是后面要讲到的 Lombok 方法，二是使用 IDE 的代码生成功能。IDEA 的类代码快捷生成菜单支持的功能如下：</p>
+
+                            <p><img src="assets/944fe3549e4c24936e9837d0bf1e3936.jpg" alt="img" /></p>
+
+                            <h2>注意 compareTo 和 equals 的逻辑一致性</h2>
+
+                            <p>除了自定义类型需要确保 equals 和 hashCode 要逻辑一致外，还有一个更容易被忽略的问题，即 compareTo 同样需要和 equals 确保逻辑一致性。</p>
+
+                            <p>我之前遇到过这么一个问题，代码里本来使用了 ArrayList 的 indexOf 方法进行元素搜索，但是一位好心的开发同学觉得逐一比较的时间复杂度是 O(n)，效率太低了，于是改为了排序后通过 Collections.binarySearch 方法进行搜索，实现了 O(log n) 的时间复杂度。没想到，这么一改却出现了 Bug。</p>
+
+                            <p>我们来重现下这个问题。首先，定义一个 Student 类，有 id 和 name 两个属性，并实现了一个 Comparable 接口来返回两个 id 的值：</p>
+
+                            <pre><code>@Data
+
+
+
+@AllArgsConstructor
+
+
+
+class Student implements Comparable&lt;Student&gt;{
+
+
+
+    private int id;
+
+
+
+    private String name;
+
+
+
+    @Override
+
+
+
+    public int compareTo(Student other) {
+
+
+
+        int result = Integer.compare(other.id, id);
+
+
+
+        if (result==0)
+
+
+
+            log.info(&quot;this {} == other {}&quot;, this, other);
+
+
+
+        return result;
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>然后，写一段测试代码分别通过 indexOf 方法和 Collections.binarySearch 方法进行搜索。列表中我们存放了两个学生，第一个学生 id 是 1 叫 zhang，第二个学生 id 是 2 叫 wang，搜索这个列表是否存在一个 id 是 2 叫 li 的学生：</p>
+
+                            <pre><code>@GetMapping(&quot;wrong&quot;)
+
+
+
+public void wrong(){
+
+
+
+    List&lt;Student&gt; list = new ArrayList&lt;&gt;();
+
+
+
+    list.add(new Student(1, &quot;zhang&quot;));
+
+
+
+    list.add(new Student(2, &quot;wang&quot;));
+
+
+
+    Student student = new Student(2, &quot;li&quot;);
+
+
+
+    log.info(&quot;ArrayList.indexOf&quot;);
+
+
+
+    int index1 = list.indexOf(student);
+
+
+
+    Collections.sort(list);
+
+
+
+    log.info(&quot;Collections.binarySearch&quot;);
+
+
+
+    int index2 = Collections.binarySearch(list, student);
+
+
+
+    log.info(&quot;index1 = &quot; + index1);
+
+
+
+    log.info(&quot;index2 = &quot; + index2);
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>代码输出的日志如下：</p>
+
+                            <pre><code>[18:46:50.226] [http-nio-45678-exec-1] [INFO ] [t.c.equals.demo2.CompareToController:28  ] - ArrayList.indexOf
+
+
+
+[18:46:50.226] [http-nio-45678-exec-1] [INFO ] [t.c.equals.demo2.CompareToController:31  ] - Collections.binarySearch
+
+
+
+[18:46:50.227] [http-nio-45678-exec-1] [INFO ] [t.c.equals.demo2.CompareToController:67  ] - this CompareToController.Student(id=2, name=wang) == other CompareToController.Student(id=2, name=li)
+
+
+
+[18:46:50.227] [http-nio-45678-exec-1] [INFO ] [t.c.equals.demo2.CompareToController:34  ] - index1 = -1
+
+
+
+[18:46:50.227] [http-nio-45678-exec-1] [INFO ] [t.c.equals.demo2.CompareToController:35  ] - index2 = 1
+
+
+
+</code></pre>
+
+                            <p>我们注意到如下几点：</p>
+
+                            <p>binarySearch 方法内部调用了元素的 compareTo 方法进行比较；</p>
+
+                            <p>indexOf 的结果没问题，列表中搜索不到 id 为 2、name 是 li 的学生；</p>
+
+                            <p>binarySearch 返回了索引 1，代表搜索到的结果是 id 为 2，name 是 wang 的学生。</p>
+
+                            <p>修复方式很简单，确保 compareTo 的比较逻辑和 equals 的实现一致即可。重新实现一下 Student 类，通过 Comparator.comparing 这个便捷的方法来实现两个字段的比较：</p>
+
+                            <pre><code>@Data
+
+
+
+@AllArgsConstructor
+
+
+
+class StudentRight implements Comparable&lt;StudentRight&gt;{
+
+
+
+    private int id;
+
+
+
+    private String name;
+
+
+
+    @Override
+
+
+
+    public int compareTo(StudentRight other) {
+
+
+
+        return Comparator.comparing(StudentRight::getName)
+
+
+
+                .thenComparingInt(StudentRight::getId)
+
+
+
+                .compare(this, other);
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>其实，这个问题容易被忽略的原因在于两方面：</p>
+
+                            <p>一是，我们使用了 Lombok 的 @Data 标记了 Student，@Data 注解（详见这里）其实包含了 @EqualsAndHashCode 注解（详见这里）的作用，也就是默认情况下使用类型所有的字段（不包括 static 和 transient 字段）参与到 equals 和 hashCode 方法的实现中。因为这两个方法的实现不是我们自己实现的，所以容易忽略其逻辑。</p>
+
+                            <p>二是，compareTo 方法需要返回数值，作为排序的依据，容易让人使用数值类型的字段随意实现。</p>
+
+                            <p>我再强调下，对于自定义的类型，如果要实现 Comparable，请记得 equals、hashCode、compareTo 三者逻辑一致。</p>
+
+                            <h2>小心 Lombok 生成代码的“坑”</h2>
+
+                            <p>Lombok 的 @Data 注解会帮我们实现 equals 和 hashcode 方法，但是有继承关系时，Lombok 自动生成的方法可能就不是我们期望的了。</p>
+
+                            <p>我们先来研究一下其实现：定义一个 Person 类型，包含姓名和身份证两个字段：</p>
+
+                            <pre><code>@Data
+
+
+
+class Person {
+
+
+
+    private String name;
+
+
+
+    private String identity;
+
+
+
+    public Person(String name, String identity) {
+
+
+
+        this.name = name;
+
+
+
+        this.identity = identity;
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>对于身份证相同、姓名不同的两个 Person 对象：</p>
+
+                            <pre><code>Person person1 = new Person(&quot;zhuye&quot;,&quot;001&quot;);
+
+
+
+Person person2 = new Person(&quot;Joseph&quot;,&quot;001&quot;);
+
+
+
+log.info(&quot;person1.equals(person2) ? {}&quot;, person1.equals(person2));
+
+
+
+</code></pre>
+
+                            <p>使用 equals 判等会得到 false。如果你希望只要身份证一致就认为是同一个人的话，可以使用 @EqualsAndHashCode.Exclude 注解来修饰 name 字段，从 equals 和 hashCode 的实现中排除 name 字段：</p>
+
+                            <pre><code>@EqualsAndHashCode.Exclude
+
+
+
+private String name;
+
+
+
+</code></pre>
+
+                            <p>修改后得到 true。打开编译后的代码可以看到，Lombok 为 Person 生成的 equals 方法的实现，确实只包含了 identity 属性：</p>
+
+                            <pre><code>public boolean equals(final Object o) {
+
+
+
+    if (o == this) {
+
+
+
+        return true;
+
+
+
+    } else if (!(o instanceof LombokEquealsController.Person)) {
+
+
+
+        return false;
+
+
+
+    } else {
+
+
+
+        LombokEquealsController.Person other = (LombokEquealsController.Person)o;
+
+
+
+        if (!other.canEqual(this)) {
+
+
+
+            return false;
+
+
+
+        } else {
+
+
+
+            Object this$identity = this.getIdentity();
+
+
+
+            Object other$identity = other.getIdentity();
+
+
+
+            if (this$identity == null) {
+
+
+
+                if (other$identity != null) {
+
+
+
+                    return false;
+
+
+
+                }
+
+
+
+            } else if (!this$identity.equals(other$identity)) {
+
+
+
+                return false;
+
+
+
+            }
+
+
+
+            return true;
+
+
+
+        }
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>但到这里还没完，如果类型之间有继承，Lombok 会怎么处理子类的 equals 和 hashCode 呢？我们来测试一下，写一个 Employee 类继承 Person，并新定义一个公司属性：</p>
+
+                            <pre><code>@Data
+
+
+
+class Employee extends Person {
+
+
+
+    private String company;
+
+
+
+    public Employee(String name, String identity, String company) {
+
+
+
+        super(name, identity);
+
+
+
+        this.company = company;
+
+
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>在如下的测试代码中，声明两个 Employee 实例，它们具有相同的公司名称，但姓名和身份证均不同：</p>
+
+                            <pre><code>Employee employee1 = new Employee(&quot;zhuye&quot;,&quot;001&quot;, &quot;bkjk.com&quot;);
+
+
+
+Employee employee2 = new Employee(&quot;Joseph&quot;,&quot;002&quot;, &quot;bkjk.com&quot;);
+
+
+
+log.info(&quot;employee1.equals(employee2) ? {}&quot;, employee1.equals(employee2));
+
+
+
+</code></pre>
+
+                            <p>很遗憾，结果是 true，显然是没有考虑父类的属性，而认为这两个员工是同一人，说明 @EqualsAndHashCode 默认实现没有使用父类属性。</p>
+
+                            <p>为解决这个问题，我们可以手动设置 callSuper 开关为 true，来覆盖这种默认行为：</p>
+
+                            <pre><code>@Data
+
+
+
+@EqualsAndHashCode(callSuper = true)
+
+
+
+class Employee extends Person {
+
+
+
+</code></pre>
+
+                            <p>修改后的代码，实现了同时以子类的属性 company 加上父类中的属性 identity，作为 equals 和 hashCode 方法的实现条件（实现上其实是调用了父类的 equals 和 hashCode）。</p>
+
+                            <h2>重点回顾</h2>
+
+                            <p>现在，我们来回顾下对象判等和比较的重点内容吧。</p>
+
+                            <p>首先，我们要注意 equals 和 == 的区别。业务代码中进行内容的比较，针对基本类型只能使用 ==，针对 Integer、String 在内的引用类型，需要使用 equals。Integer 和 String 的坑在于，使用 == 判等有时也能获得正确结果。</p>
+
+                            <p>其次，对于自定义类型，如果类型需要参与判等，那么务必同时实现 equals 和 hashCode 方法，并确保逻辑一致。如果希望快速实现 equals、hashCode 方法，我们可以借助 IDE 的代码生成功能，或使用 Lombok 来生成。如果类型也要参与比较，那么 compareTo 方法的逻辑同样需要和 equals、hashCode 方法一致。</p>
+
+                            <p>最后，Lombok 的 @EqualsAndHashCode 注解实现 equals 和 hashCode 的时候，默认使用类型所有非 static、非 transient 的字段，且不考虑父类。如果希望改变这种默认行为，可以使用 @EqualsAndHashCode.Exclude 排除一些字段，并设置 callSuper = true 来让子类的 equals 和 hashCode 调用父类的相应方法。</p>
+
+                            <p>在比较枚举值和 POJO 参数值的例子中，我们还可以注意到，使用 == 来判断两个包装类型的低级错误，确实容易被忽略。所以，我建议你在 IDE 中安装阿里巴巴的 Java 规约插件（详见这里），来及时提示我们这类低级错误：</p>
+
+                            <p><img src="assets/fe020d747a35cec23e5d92c1277d02c3.png" alt="img" /></p>
+
+                            <p>今天用到的代码，我都放在了 GitHub 上，你可以点击这个链接查看。</p>
+
+                            <h2>思考与讨论</h2>
+
+                            <p>在实现 equals 时，我是先通过 getClass 方法判断两个对象的类型，你可能会想到还可以使用 instanceof 来判断。你能说说这两种实现方式的区别吗？</p>
+
+                            <p>在第三节的例子中，我演示了可以通过 HashSet 的 contains 方法判断元素是否在 HashSet 中，同样是 Set 的 TreeSet 其 contains 方法和 HashSet 有什么区别吗？</p>
+
+                            <p>有关对象判等、比较，你还遇到过其他坑吗？我是朱晔，欢迎在评论区与我留言分享你的想法，也欢迎你把这篇文章分享给你的朋友或同事，一起交流。</p>
+
+                        </div>
+
+                    </div>
+                    <div class="book-post">
+
+                        <p id="tip" align="center"></p>
+
+                        <div><h1>09 数值计算：注意精度、舍入和溢出问题</h1>
+
+                            <p>你好，我是朱晔。今天，我要和你说说数值计算的精度、舍入和溢出问题。</p>
+
+                            <p>之所以要单独分享数值计算，是因为很多时候我们习惯的或者说认为理所当然的计算，在计算器或计算机看来并不是那么回事儿。就比如前段时间爆出的一条新闻，说是手机计算器把 10%+10% 算成了 0.11 而不是 0.2。</p>
+
+                            <p>出现这种问题的原因在于，国外的计算程序使用的是单步计算法。在单步计算法中，a+b% 代表的是 a*(1+b%)。所以，手机计算器计算 10%+10% 时，其实计算的是 10%*（1+10%），所以得到的是 0.11 而不是 0.2。</p>
+
+                            <p>在我看来，计算器或计算机会得到反直觉的计算结果的原因，可以归结为：</p>
+
+                            <p>在人看来，浮点数只是具有小数点的数字，0.1 和 1 都是一样精确的数字。但，计算机其实无法精确保存浮点数，因此浮点数的计算结果也不可能精确。</p>
+
+                            <p>在人看来，一个超大的数字只是位数多一点而已，多写几个 1 并不会让大脑死机。但，计算机是把数值保存在了变量中，不同类型的数值变量能保存的数值范围不同，当数值超过类型能表达的数值上限则会发生溢出问题。</p>
+
+                            <p>接下来，我们就具体看看这些问题吧。</p>
+
+                            <h2>“危险”的 Double</h2>
+
+                            <p>我们先从简单的反直觉的四则运算看起。对几个简单的浮点数进行加减乘除运算：</p>
+
+                            <pre><code>System.out.println(0.1+0.2);
+
+
+
+System.out.println(1.0-0.8);
+
+
+
+System.out.println(4.015*100);
+
+
+
+System.out.println(123.3/100);
+
+
+
+double amount1 = 2.15;
+
+
+
+double amount2 = 1.10;
+
+
+
+if (amount1 - amount2 == 1.05)
+
+
+
+    System.out.println(&quot;OK&quot;);
+
+
+
+</code></pre>
+
+                            <p>输出结果如下：</p>
+
+                            <pre><code>0.30000000000000004
+
+
+
+0.19999999999999996
+
+
+
+401.49999999999994
+
+
+
+1.2329999999999999
+
+
+
+</code></pre>
+
+                            <p>可以看到，输出结果和我们预期的很不一样。比如，0.1+0.2 输出的不是 0.3 而是 0.30000000000000004；再比如，对 2.15-1.10 和 1.05 判等，结果判等不成立。</p>
+
+                            <p>出现这种问题的主要原因是，计算机是以二进制存储数值的，浮点数也不例外。Java 采用了IEEE 754 标准实现浮点数的表达和运算，你可以通过这里查看数值转化为二进制的结果。</p>
+
+                            <p>比如，0.1 的二进制表示为 0.0 0011 0011 0011… （0011 无限循环)，再转换为十进制就是 0.1000000000000000055511151231257827021181583404541015625。对于计算机而言，0.1 无法精确表达，这是浮点数计算造成精度损失的根源。</p>
+
+                            <p>你可能会说，以 0.1 为例，其十进制和二进制间转换后相差非常小，不会对计算产生什么影响。但，所谓积土成山，如果大量使用 double 来作大量的金钱计算，最终损失的精度就是大量的资金出入。比如，每天有一百万次交易，每次交易都差一分钱，一个月下来就差 30 万。这就不是小事儿了。那，如何解决这个问题呢？</p>
+
+                            <p>我们大都听说过 BigDecimal 类型，浮点数精确表达和运算的场景，一定要使用这个类型。不过，在使用 BigDecimal 时有几个坑需要避开。我们用 BigDecimal 把之前的四则运算改一下：</p>
+
+                            <pre><code>System.out.println(new BigDecimal(0.1).add(new BigDecimal(0.2)));
+
+
+
+System.out.println(new BigDecimal(1.0).subtract(new BigDecimal(0.8)));
+
+
+
+System.out.println(new BigDecimal(4.015).multiply(new BigDecimal(100)));
+
+
+
+System.out.println(new BigDecimal(123.3).divide(new BigDecimal(100)));
+
+
+
+</code></pre>
+
+                            <p>输出如下：</p>
+
+                            <pre><code>0.3000000000000000166533453693773481063544750213623046875
+
+
+
+0.1999999999999999555910790149937383830547332763671875
+
+
+
+401.49999999999996802557689079549163579940795898437500
+
+
+
+1.232999999999999971578290569595992565155029296875
+
+
+
+</code></pre>
+
+                            <p>可以看到，运算结果还是不精确，只不过是精度高了而已。这里给出浮点数运算避坑第一原则：使用 BigDecimal 表示和计算浮点数，且务必使用字符串的构造方法来初始化 BigDecimal：</p>
+
+                            <pre><code>System.out.println(new BigDecimal(&quot;0.1&quot;).add(new BigDecimal(&quot;0.2&quot;)));
+
+
+
+System.out.println(new BigDecimal(&quot;1.0&quot;).subtract(new BigDecimal(&quot;0.8&quot;)));
+
+
+
+System.out.println(new BigDecimal(&quot;4.015&quot;).multiply(new BigDecimal(&quot;100&quot;)));
+
+
+
+System.out.println(new BigDecimal(&quot;123.3&quot;).divide(new BigDecimal(&quot;100&quot;)));
+
+
+
+</code></pre>
+
+                            <p>改进后，就能得到我们想要的输出了：</p>
+
+                            <pre><code>0.3
+
+
+
+0.2
+
+
+
+401.500
+
+
+
+1.233
+
+
+
+</code></pre>
+
+                            <p>到这里，你可能会继续问，不能调用 BigDecimal 传入 Double 的构造方法，但手头只有一个 Double，如何转换为精确表达的 BigDecimal 呢？</p>
+
+                            <p>我们试试用 Double.toString 把 double 转换为字符串，看看行不行？</p>
+
+                            <pre><code>System.out.println(new BigDecimal(&quot;4.015&quot;).multiply(new BigDecimal(Double.toString(100))));
+
+
+
+</code></pre>
+
+                            <p>输出为 401.5000。与上面字符串初始化 100 和 4.015 相乘得到的结果 401.500 相比，这里为什么多了 1 个 0 呢？原因就是，BigDecimal 有 scale 和 precision 的概念，scale 表示小数点右边的位数，而 precision 表示精度，也就是有效数字的长度。</p>
+
+                            <p>调试一下可以发现，new BigDecimal(Double.toString(100)) 得到的 BigDecimal 的 scale=1、precision=4；而 new BigDecimal(“100”) 得到的 BigDecimal 的 scale=0、precision=3。对于 BigDecimal 乘法操作，返回值的 scale 是两个数的 scale 相加。所以，初始化 100 的两种不同方式，导致最后结果的 scale 分别是 4 和 3：</p>
+
+                            <pre><code>private static void testScale() {
+
+
+
+    BigDecimal bigDecimal1 = new BigDecimal(&quot;100&quot;);
+
+
+
+    BigDecimal bigDecimal2 = new BigDecimal(String.valueOf(100d));
+
+
+
+    BigDecimal bigDecimal3 = new BigDecimal(String.valueOf(100));
+
+
+
+    BigDecimal bigDecimal4 = BigDecimal.valueOf(100d);
+
+
+
+    BigDecimal bigDecimal5 = new BigDecimal(Double.toString(100));
+
+
+
+    print(bigDecimal1); //scale 0 precision 3 result 401.500
+
+
+
+    print(bigDecimal2); //scale 1 precision 4 result 401.5000
+
+
+
+    print(bigDecimal3); //scale 0 precision 3 result 401.500
+
+
+
+    print(bigDecimal4); //scale 1 precision 4 result 401.5000
+
+
+
+    print(bigDecimal5); //scale 1 precision 4 result 401.5000
+
+
+
+}
+
+
+
+private static void print(BigDecimal bigDecimal) {
+
+
+
+    log.info(&quot;scale {} precision {} result {}&quot;, bigDecimal.scale(), bigDecimal.precision(), bigDecimal.multiply(new BigDecimal(&quot;4.015&quot;)));
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>BigDecimal 的 toString 方法得到的字符串和 scale 相关，又会引出了另一个问题：对于浮点数的字符串形式输出和格式化，我们应该考虑显式进行，通过格式化表达式或格式化工具来明确小数位数和舍入方式。接下来，我们就聊聊浮点数舍入和格式化。</p>
+
+                            <h2>考虑浮点数舍入和格式化的方式</h2>
+
+                            <p>除了使用 Double 保存浮点数可能带来精度问题外，更匪夷所思的是这种精度问题，加上 String.format 的格式化舍入方式，可能得到让人摸不着头脑的结果。</p>
+
+                            <p>我们看一个例子吧。首先用 double 和 float 初始化两个 3.35 的浮点数，然后通过 String.format 使用 %.1f 来格式化这 2 个数字：</p>
+
+                            <pre><code>double num1 = 3.35;
+
+
+
+float num2 = 3.35f;
+
+
+
+System.out.println(String.format(&quot;%.1f&quot;, num1));//四舍五入
+
+
+
+System.out.println(String.format(&quot;%.1f&quot;, num2));
+
+
+
+</code></pre>
+
+                            <p>得到的结果居然是 3.4 和 3.3。</p>
+
+                            <p>这就是由精度问题和舍入方式共同导致的，double 和 float 的 3.35 其实相当于 3.350xxx 和 3.349xxx：</p>
+
+                            <pre><code>3.350000000000000088817841970012523233890533447265625
+
+
+
+3.349999904632568359375
+
+
+
+</code></pre>
+
+                            <p>String.format 采用四舍五入的方式进行舍入，取 1 位小数，double 的 3.350 四舍五入为 3.4，而 float 的 3.349 四舍五入为 3.3。</p>
+
+                            <p>我们看一下 Formatter 类的相关源码，可以发现使用的舍入模式是 HALF_UP（代码第 11 行）：</p>
+
+                            <pre><code>else if (c == Conversion.DECIMAL_FLOAT) {
+
+
+
+    // Create a new BigDecimal with the desired precision.
+
+
+
+    int prec = (precision == -1 ? 6 : precision);
+
+
+
+    int scale = value.scale();
+
+
+
+    if (scale &gt; prec) {
+
+
+
+        // more &quot;scale&quot; digits than the requested &quot;precision&quot;
+
+
+
+        int compPrec = value.precision();
+
+
+
+        if (compPrec &lt;= scale) {
+
+
+
+            // case of 0.xxxxxx
+
+
+
+            value = value.setScale(prec, RoundingMode.HALF_UP);
+
+
+
+        } else {
+
+
+
+            compPrec -= (scale - prec);
+
+
+
+            value = new BigDecimal(value.unscaledValue(),
+
+
+
+                                   scale,
+
+
+
+                                   new MathContext(compPrec));
+
+
+
+        }
+
+
+
+    }
+
+
+
+</code></pre>
+
+                            <p>如果我们希望使用其他舍入方式来格式化字符串的话，可以设置 DecimalFormat，如下代码所示：</p>
+
+                            <pre><code>double num1 = 3.35;
+
+
+
+float num2 = 3.35f;
+
+
+
+DecimalFormat format = new DecimalFormat(&quot;#.##&quot;);
+
+
+
+format.setRoundingMode(RoundingMode.DOWN);
+
+
+
+System.out.println(format.format(num1));
+
+
+
+format.setRoundingMode(RoundingMode.DOWN);
+
+
+
+System.out.println(format.format(num2));
+
+
+
+</code></pre>
+
+                            <p>当我们把这 2 个浮点数向下舍入取 2 位小数时，输出分别是 3.35 和 3.34，还是我们之前说的浮点数无法精确存储的问题。</p>
+
+                            <p>因此，即使通过 DecimalFormat 来精确控制舍入方式，double 和 float 的问题也可能产生意想不到的结果，所以浮点数避坑第二原则：浮点数的字符串格式化也要通过 BigDecimal 进行。</p>
+
+                            <p>比如下面这段代码，使用 BigDecimal 来格式化数字 3.35，分别使用向下舍入和四舍五入方式取 1 位小数进行格式化：</p>
+
+                            <pre><code>BigDecimal num1 = new BigDecimal(&quot;3.35&quot;);
+
+
+
+BigDecimal num2 = num1.setScale(1, BigDecimal.ROUND_DOWN);
+
+
+
+System.out.println(num2);
+
+
+
+BigDecimal num3 = num1.setScale(1, BigDecimal.ROUND_HALF_UP);
+
+
+
+System.out.println(num3);
+
+
+
+</code></pre>
+
+                            <p>这次得到的结果是 3.3 和 3.4，符合预期。</p>
+
+                            <h2>用 equals 做判等，就一定是对的吗？</h2>
+
+                            <p>现在我们知道了，应该使用 BigDecimal 来进行浮点数的表示、计算、格式化。在上一讲介绍判等问题时，我提到一个原则：包装类的比较要通过 equals 进行，而不能使用 ==。那么，使用 equals 方法对两个 BigDecimal 判等，一定能得到我们想要的结果吗？</p>
+
+                            <p>我们来看下面的例子。使用 equals 方法比较 1.0 和 1 这两个 BigDecimal：</p>
+
+                            <pre><code>System.out.println(new BigDecimal(&quot;1.0&quot;).equals(new BigDecimal(&quot;1&quot;)))
+
+
+
+</code></pre>
+
+                            <p>你可能已经猜到我要说什么了，结果当然是 false。BigDecimal 的 equals 方法的注释中说明了原因，equals 比较的是 BigDecimal 的 value 和 scale，1.0 的 scale 是 1，1 的 scale 是 0，所以结果一定是 false：</p>
+
+                            <pre><code>/**
+
+
+
+ \* Compares this {@code BigDecimal} with the specified
+
+
+
+ \* {@code Object} for equality.  Unlike {@link
+
+
+
+ \* #compareTo(BigDecimal) compareTo}, this method considers two
+
+
+
+ \* {@code BigDecimal} objects equal only if they are equal in
+
+
+
+ \* value and scale (thus 2.0 is not equal to 2.00 when compared by
+
+
+
+ \* this method).
+
+
+
+ *
+
+
+
+ \* @param  x {@code Object} to which this {@code BigDecimal} is
+
+
+
+ \*         to be compared.
+
+
+
+ \* @return {@code true} if and only if the specified {@code Object} is a
+
+
+
+ \*         {@code BigDecimal} whose value and scale are equal to this
+
+
+
+ \*         {@code BigDecimal}'s.
+
+
+
+ \* @see    #compareTo(java.math.BigDecimal)
+
+
+
+ \* @see    #hashCode
+
+
+
+ */
+
+
+
+@Override
+
+
+
+public boolean equals(Object x)
+
+
+
+</code></pre>
+
+                            <p>如果我们希望只比较 BigDecimal 的 value，可以使用 compareTo 方法，修改后代码如下：</p>
+
+                            <pre><code>System.out.println(new BigDecimal(&quot;1.0&quot;).compareTo(new BigDecimal(&quot;1&quot;))==0);
+
+
+
+</code></pre>
+
+                            <p>学过上一讲，你可能会意识到 BigDecimal 的 equals 和 hashCode 方法会同时考虑 value 和 scale，如果结合 HashSet 或 HashMap 使用的话就可能会出现麻烦。比如，我们把值为 1.0 的 BigDecimal 加入 HashSet，然后判断其是否存在值为 1 的 BigDecimal，得到的结果是 false：</p>
+
+                            <pre><code>Set&lt;BigDecimal&gt; hashSet1 = new HashSet&lt;&gt;();
+
+
+
+hashSet1.add(new BigDecimal(&quot;1.0&quot;));
+
+
+
+System.out.println(hashSet1.contains(new BigDecimal(&quot;1&quot;)));//返回false
+
+
+
+</code></pre>
+
+                            <p>解决这个问题的办法有两个：</p>
+
+                            <p>第一个方法是，使用 TreeSet 替换 HashSet。TreeSet 不使用 hashCode 方法，也不使用 equals 比较元素，而是使用 compareTo 方法，所以不会有问题。</p>
+
+                            <pre><code>Set&lt;BigDecimal&gt; treeSet = new TreeSet&lt;&gt;();
+
+
+
+treeSet.add(new BigDecimal(&quot;1.0&quot;));
+
+
+
+System.out.println(treeSet.contains(new BigDecimal(&quot;1&quot;)));//返回true
+
+
+
+</code></pre>
+
+                            <p>第二个方法是，把 BigDecimal 存入 HashSet 或 HashMap 前，先使用 stripTrailingZeros 方法去掉尾部的零，比较的时候也去掉尾部的 0，确保 value 相同的 BigDecimal，scale 也是一致的：</p>
+
+                            <pre><code>Set&lt;BigDecimal&gt; hashSet2 = new HashSet&lt;&gt;();
+
+
+
+hashSet2.add(new BigDecimal(&quot;1.0&quot;).stripTrailingZeros());
+
+
+
+System.out.println(hashSet2.contains(new BigDecimal(&quot;1.000&quot;).stripTrailingZeros()));//返回true
+
+
+
+</code></pre>
+
+                            <h2>小心数值溢出问题</h2>
+
+                            <p>数值计算还有一个要小心的点是溢出，不管是 int 还是 long，所有的基本数值类型都有超出表达范围的可能性。</p>
+
+                            <p>比如，对 Long 的最大值进行 +1 操作：</p>
+
+                            <pre><code>long l = Long.MAX_VALUE;
+
+
+
+System.out.println(l + 1);
+
+
+
+System.out.println(l + 1 == Long.MIN_VALUE);
+
+
+
+</code></pre>
+
+                            <p>输出结果是一个负数，因为 Long 的最大值 +1 变为了 Long 的最小值：</p>
+
+                            <pre><code>-9223372036854775808
+
+
+
+true
+
+
+
+</code></pre>
+
+                            <p>显然这是发生了溢出，而且是默默地溢出，并没有任何异常。这类问题非常容易被忽略，改进方式有下面 2 种。</p>
+
+                            <p>方法一是，考虑使用 Math 类的 addExact、subtractExact 等 xxExact 方法进行数值运算，这些方法可以在数值溢出时主动抛出异常。我们来测试一下，使用 Math.addExact 对 Long 最大值做 +1 操作：</p>
+
+                            <pre><code>try {
+
+
+
+    long l = Long.MAX_VALUE;
+
+
+
+    System.out.println(Math.addExact(l, 1));
+
+
+
+} catch (Exception ex) {
+
+
+
+    ex.printStackTrace();
+
+
+
+}
+
+</code></pre>
+
+                            <p>执行后，可以得到 ArithmeticException，这是一个 RuntimeException：</p>
+
+                            <pre><code>java.lang.ArithmeticException: long overflow
+
+
+
+  at java.lang.Math.addExact(Math.java:809)
+
+
+
+  at org.geekbang.time.commonmistakes.numeralcalculations.demo3.CommonMistakesApplication.right2(CommonMistakesApplication.java:25)
+
+
+
+  at org.geekbang.time.commonmistakes.numeralcalculations.demo3.CommonMistakesApplication.main(CommonMistakesApplication.java:13)
+
+
+
+</code></pre>
+
+                            <p>方法二是，使用大数类 BigInteger。BigDecimal 是处理浮点数的专家，而 BigInteger 则是对大数进行科学计算的专家。</p>
+
+                            <p>如下代码，使用 BigInteger 对 Long 最大值进行 +1 操作；如果希望把计算结果转换一个 Long 变量的话，可以使用 BigInteger 的 longValueExact 方法，在转换出现溢出时，同样会抛出 ArithmeticException：</p>
+
+                            <pre><code>BigInteger i = new BigInteger(String.valueOf(Long.MAX_VALUE));
+
+
+
+System.out.println(i.add(BigInteger.ONE).toString());
+
+
+
+try {
+
+
+
+    long l = i.add(BigInteger.ONE).longValueExact();
+
+
+
+} catch (Exception ex) {
+
+
+
+    ex.printStackTrace();
+
+
+
+}
+
+
+
+</code></pre>
+
+                            <p>输出结果如下：</p>
+
+                            <pre><code>9223372036854775808
+
+
+
+java.lang.ArithmeticException: BigInteger out of long range
+
+
+
+  at java.math.BigInteger.longValueExact(BigInteger.java:4632)
+
+
+
+  at org.geekbang.time.commonmistakes.numeralcalculations.demo3.CommonMistakesApplication.right1(CommonMistakesApplication.java:37)
+
+
+
+  at org.geekbang.time.commonmistakes.numeralcalculations.demo3.CommonMistakesApplication.main(CommonMistakesApplication.java:11)
+
+
+
+</code></pre>
+
+                            <p>可以看到，通过 BigInteger 对 Long 的最大值加 1 一点问题都没有，当尝试把结果转换为 Long 类型时，则会提示 BigInteger out of long range。</p>
+
+                            <h2>重点回顾</h2>
+
+                            <p>今天，我与你分享了浮点数的表示、计算、舍入和格式化、溢出等涉及的一些坑。</p>
+
+                            <p>第一，切记，要精确表示浮点数应该使用 BigDecimal。并且，使用 BigDecimal 的 Double 入参的构造方法同样存在精度丢失问题，应该使用 String 入参的构造方法或者 BigDecimal.valueOf 方法来初始化。</p>
+
+                            <p>第二，对浮点数做精确计算，参与计算的各种数值应该始终使用 BigDecimal，所有的计算都要通过 BigDecimal 的方法进行，切勿只是让 BigDecimal 来走过场。任何一个环节出现精度损失，最后的计算结果可能都会出现误差。</p>
+
+                            <p>第三，对于浮点数的格式化，如果使用 String.format 的话，需要认识到它使用的是四舍五入，可以考虑使用 DecimalFormat 来明确指定舍入方式。但考虑到精度问题，我更建议使用 BigDecimal 来表示浮点数，并使用其 setScale 方法指定舍入的位数和方式。</p>
+
+                            <p>第四，进行数值运算时要小心溢出问题，虽然溢出后不会出现异常，但得到的计算结果是完全错误的。我们考虑使用 Math.xxxExact 方法来进行运算，在溢出时能抛出异常，更建议对于可能会出现溢出的大数运算使用 BigInteger 类。</p>
+
+                            <p>总之，对于金融、科学计算等场景，请尽可能使用 BigDecimal 和 BigInteger，避免由精度和溢出问题引发难以发现，但影响重大的 Bug。</p>
+
+                            <p>今天用到的代码，我都放在了 GitHub 上，你可以点击这个链接查看。</p>
+
+                            <h2>思考与讨论</h2>
+
+                            <p>BigDecimal提供了 8 种舍入模式，你能通过一些例子说说它们的区别吗？</p>
+
+                            <p>数据库（比如 MySQL）中的浮点数和整型数字，你知道应该怎样定义吗？又如何实现浮点数的准确计算呢？</p>
+
+                            <p>针对数值运算，你还遇到过什么坑吗？我是朱晔，欢迎在评论区与我留言分享你的想法，也欢迎你把这篇文章分享给你的朋友或同事，一起交流。</p>
+
+                        </div>
+
+                    </div>
+
+                    <!--                    <div>-->
+
+<!--                        <div style="float: left">-->
+
+<!--                            <a href="/专栏/Java 业务开发常见错误 100 例/00 开篇词 业务代码真的会有这么多坑？.md.html">上一页</a>-->
+
+<!--                        </div>-->
+
+<!--                        <div style="float: right">-->
+
+<!--                            <a href="/专栏/Java 业务开发常见错误 100 例/02 代码加锁：不要让“锁”事成为烦心事.md.html">下一页</a>-->
+
+<!--                        </div>-->
+
+<!--                    </div>-->
 
 
 

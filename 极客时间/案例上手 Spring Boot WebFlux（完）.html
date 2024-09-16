@@ -1,0 +1,4570 @@
+<!DOCTYPE html>
+<!-- saved from url=(0046)https://kaiiiz.github.io/hexo-theme-book-demo/ -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+        <link rel="icon" href="/static/favicon.png">
+        <title>案例上手 Spring Boot WebFlux（完）.html</title>
+        <!-- Spectre.css framework -->
+        <link rel="stylesheet" href="/static/index.css">
+        <!-- theme css & js -->
+        <meta name="generator" content="Hexo 4.2.0">
+    </head>
+
+<body>
+
+<div class="book-container">
+
+    <script>
+        function add_inner() {
+            let inner = document.querySelector('.sidebar-toggle-inner')
+            inner.classList.add('show')
+        }
+
+        function remove_inner() {
+            let inner = document.querySelector('.sidebar-toggle-inner')
+            inner.classList.remove('show')
+        }
+
+        function sidebar_toggle() {
+            let sidebar_toggle = document.querySelector('.sidebar-toggle')
+            let sidebar = document.querySelector('.book-sidebar')
+            let content = document.querySelector('.off-canvas-content')
+            if (sidebar_toggle.classList.contains('extend')) { // show
+                sidebar_toggle.classList.remove('extend')
+                sidebar.classList.remove('hide')
+                content.classList.remove('extend')
+            } else { // hide
+                sidebar_toggle.classList.add('extend')
+                sidebar.classList.add('hide')
+                content.classList.add('extend')
+            }
+        }
+
+
+function open_sidebar() {
+    let sidebar = document.querySelector('.book-sidebar')
+    let overlay = document.querySelector('.off-canvas-overlay')
+    sidebar.classList.add('show')
+    overlay.classList.add('show')
+}
+function hide_canvas() {
+    let sidebar = document.querySelector('.book-sidebar')
+    let overlay = document.querySelector('.off-canvas-overlay')
+    sidebar.classList.remove('show')
+    overlay.classList.remove('show')
+}
+
+    </script>
+
+    <div class="off-canvas-content">
+        <div class="columns">
+            <div class="column col-12 col-lg-12">
+                <div class="book-navbar">
+                    <!-- For Responsive Layout -->
+                    <header class="navbar">
+                        <section class="navbar-section">
+                            <a onclick="open_sidebar()">
+                                <i class="icon icon-menu"></i>
+                            </a>
+                        </section>
+                    </header>
+                </div>
+                <div class="book-content" style="max-width: 960px; margin: 0 auto;
+    overflow-x: auto;
+    overflow-y: hidden;">
+<div class="book-post">
+
+                        <p id="tip" align="center"></p>
+
+                        <div><h1>01 导读：课程概要</h1>
+
+<h3>背景</h3>
+
+<p>大家都知道，Spring Framework 是 Java/Spring 应用程序跨平台开发框架，也是 Java EE（Java Enterprise Edition） 轻量级框架，其 Spring 平台为 Java 开发者提供了全面的基础设施支持，虽然 Spring 基础组件的代码是轻量级，但其配置依旧是重量级的。</p>
+
+<p>那是怎么解决了呢？当然是 Spring Boot，Spring Boot 提供了新的编程模式，让开发 Spring 应用变得更加简单方便。本课将会由各个最佳实践工程出发，涉及 Spring Boot 开发相关的各方面，下面先了解下 Spring Boot 框架。</p>
+
+<h3>Spring Boot 是什么</h3>
+
+<p>Spring Boot（Boot 顾名思义，是引导的意思）框架是用于简化 Spring 应用从搭建到开发的过程。应用开箱即用，只要通过一个指令，包括命令行 java -jar、SpringApplication 应用启动类、Spring Boot Maven 插件等，就可以启动应用了。另外，Spring Boot 强调只需要很少的配置文件，所以在开发生产级 Spring 应用中，让开发变得更加高效和简易。目前，Spring Boot 版本是 2.x 版本。</p>
+
+<p><img src="assets/87db53c0-b936-11e7-b969-cb3cfaf54002" alt="img"></p>
+
+<h3>Spring Boot WebFlux 是什么</h3>
+
+<p>可以看到上面的图，WebFlux 相对 MVC 一样重要。大多数场景使用 MVC 都是阻塞式的，WebFlux 使用的场景是异步非阻塞的，那什么是响应式编程（Reactive Programming）？</p>
+
+<p>官方文档这样描述：响应式编程是基于异步和事件驱动的非阻塞程序，只是垂直通过在 JVM 内启动少量线程扩展，而不是水平通过集群扩展。</p>
+
+<p>Spring Boot 2.0 包括一个新的 spring-webflux 模块，该模块包含对响应式 HTTP 和 WebSocket 客户端的支持，以及对 REST、HTML 和 WebSocket 交互等程序的支持。</p>
+
+<h3>为什么学习 Spring Boot WebFlux</h3>
+
+<ul>
+
+<li>微服务架构越来越火，Spring Boot 是一大趋势，因为 Spring Cloud 是基于 Spring Boot 的，所以学好 Spring Boot WebFlux 会受益匪浅。</li>
+
+<li>从编程来讲，虽然阻塞式编程是避免不了的，但是 Reactive 编程在大多数场景，能够提高资源利用率。所以，学习 WebFlux，尤其某些 IO 密集型场景很刚需。</li>
+
+</ul>
+
+<h3>本课程可以学到什么</h3>
+
+<p>本课程是一个系列基础教程，目标是带领读者上手实战，课程以新版本 Spring Boot 2.0 WebFlux 的核心概念作为主线。围绕 Spring Boot 2.0 WebFlux 技术栈的系列教程，目标是带领读者了解 Spring Boot 2.0 WebFlux 各种特性，并学会使用 Spring Boot 相关技术栈上手开发项目。尤其对于微服务下，如果是 IO 密集型等场景，可以考虑使用 WebFlux 去实现。</p>
+
+<p>主要包含知识点：快速入门、CRUD 、MongoDB Reactive、Thymeleaf、Redis、WebSocket 等，一步一步了解每个组件的使用方式，最后综合演练。</p>
+
+<p>认真学完这个系列文章之后，会对 Spring Boot 2.0 WebFlux 有进一步的了解，具备使用 Spring Boot 2.0 WebFlux 上手进行开发的基本能力。</p>
+
+<p>我早期写的文章可以看我的 <a href="https://github.com/JeffLi1993">GitHub</a>。</p>
+
+<h3>适合阅读的人群</h3>
+
+<p>本 GitChat 课程适合以下人群阅读：</p>
+
+<ul>
+
+<li>Spring Boot 2.0 WebFlux 新版本的初学人员</li>
+
+<li>对 Spring Boot 2.0 WebFlux 开发感兴趣的开发人员</li>
+
+<li>希望了解 Spring Boot 2.0 WebFlux 的研发人员</li>
+
+</ul>
+
+<p>版本使用 Spring Boot 2.0.1.RELEASE 版本进行开发演示，技术人员需要具备 Maven、Git 基本技能。</p>
+
+<p><strong>开发运行环境：</strong></p>
+
+<ul>
+
+<li>JDK 1.8 + Spring Boot 2.x 要求 JDK 1.8 环境及以上版本。另外，Spring Boot 2.x 只兼容 Spring Framework 5.0 及以上版本。</li>
+
+<li>Maven 3.2+ 为 Spring Boot 2.x 提供了相关依赖构建工具是 Maven，版本需要 3.2 及以上版本，使用 Gradle 则需要 1.12 及以上版本。Maven 和 Gradle 大家各自挑选下喜欢的就好。</li>
+
+<li>IntelliJ IDEA IntelliJ IDEA （简称 IDEA）是常用的开发工具，也是本书推荐使用的，同样使用 Eclipse IDE 自然也是可以的。</li>
+
+</ul>
+
+<p><strong>开发使用框架：</strong></p>
+
+<ul>
+
+<li>MongoDB</li>
+
+<li>Redis</li>
+
+<li>Thymeleaf</li>
+
+<li>WebSocket</li>
+
+</ul>
+
+</div>
+
+                    </div><div class="book-post">
+                        <p id="tip" align="center"></p>
+                        <div><h1>02 WebFlux 快速入门实践</h1>
+<h3>Spring Boot 2.0</h3>
+<p>spring.io 官网有句醒目的话是：</p>
+<pre><code>BUILD ANYTHING WITH SPRING BOOT
+
+</code></pre>
+<p>Spring Boot （Boot 顾名思义，是引导的意思）框架是用于简化 Spring 应用从搭建到开发的过程。应用开箱即用，只要通过一个指令，包括命令行 <code>java -jar</code> 、<code>SpringApplication</code> 应用启动类 、 Spring Boot Maven 插件等，就可以启动应用了。另外，Spring Boot 强调只需要很少的配置文件，所以在开发生产级 Spring 应用中，让开发变得更加高效和简易。目前，Spring Boot 版本是 2.x 版本。Spring Boot 包括 WebFlux。</p>
+<p><img src="assets/87db53c0-b936-11e7-b969-cb3cfaf54002-1608971096373" alt="img"></p>
+<h3>Spring Boot 2.0 WebFlux</h3>
+<p>了解 WebFlux，首先了解下什么是 Reactive Streams。Reactive Streams 是 JVM 中面向流的库标准和规范：</p>
+<ul>
+<li>处理可能无限数量的元素</li>
+<li>按顺序处理</li>
+<li>组件之间异步传递</li>
+<li>强制性非阻塞背压（Backpressure）</li>
+</ul>
+<p><strong>Backpressure（背压）</strong></p>
+<p>背压是一种常用策略，使得发布者拥有无限制的缓冲区存储元素，用于确保发布者发布元素太快时，不会去压制订阅者。</p>
+<p><strong>Reactive Streams（响应式流）</strong></p>
+<p>一般由以下组成：</p>
+<ul>
+<li>发布者：发布元素到订阅者</li>
+<li>订阅者：消费元素</li>
+<li>订阅：在发布者中，订阅被创建时，将与订阅者共享</li>
+<li>处理器：发布者与订阅者之间处理数据</li>
+</ul>
+<p><strong>响应式编程</strong></p>
+<p>有了 Reactive Streams 这种标准和规范，利用规范可以进行响应式编程。那再了解下什么是 Reactive programming 响应式编程。响应式编程是基于异步和事件驱动的非阻塞程序，只是垂直通过在 JVM 内启动少量线程扩展，而不是水平通过集群扩展。这就是一个编程范例，具体项目中如何体现呢？</p>
+<p>响应式项目编程实战中，通过基于 Reactive Streams 规范实现的框架 Reactor 去实战。Reactor 一般提供两种响应式 API ：</p>
+<ul>
+<li>Mono：实现发布者，并返回 0 或 1 个元素</li>
+<li>Flux：实现发布者，并返回 N 个元素</li>
+</ul>
+<p><strong>Spring Webflux</strong></p>
+<p>Spring Boot Webflux 就是基于 Reactor 实现的。Spring Boot 2.0 包括一个新的 spring-webflux 模块。该模块包含对响应式 HTTP 和 WebSocket 客户端的支持，以及对 REST，HTML 和 WebSocket 交互等程序的支持。一般来说，Spring MVC 用于同步处理，Spring Webflux 用于异步处理。</p>
+<p>Spring Boot Webflux 有两种编程模型实现，一种类似 Spring MVC 注解方式，另一种是使用其功能性端点方式。注解的会在第二篇文章讲到，下面快速入门用 Spring Webflux 功能性方式实现。</p>
+<h3>Spring Boot 2.0 WebFlux 特性</h3>
+<p>常用的 Spring Boot 2.0 WebFlux 生产的特性如下：</p>
+<ul>
+<li>响应式 API</li>
+<li>编程模型</li>
+<li>适用性</li>
+<li>内嵌容器</li>
+<li>Starter 组件</li>
+</ul>
+<p>还有对日志、Web、消息、测试及扩展等支持。</p>
+<h4>响应式 API</h4>
+<p>Reactor 框架是 Spring Boot Webflux 响应库依赖，通过 Reactive Streams 并与其他响应库交互。提供了 两种响应式 API：Mono 和 Flux。一般是将 Publisher 作为输入，在框架内部转换成 Reactor 类型并处理逻辑，然后返回 Flux 或 Mono 作为输出。</p>
+<h4>适用性</h4>
+<p><img src="assets/e39654d047bd43a8f708d67f947c00c01523267.png" alt="file"></p>
+<p>一图就很明确了，WebFlux 和 MVC 有交集，方便大家迁移。但是注意：</p>
+<ul>
+<li>MVC 能满足场景的，就不需要更改为 WebFlux。</li>
+<li>要注意容器的支持，可以看看下面内嵌容器的支持。</li>
+<li>微服务体系结构，WebFlux 和 MVC 可以混合使用。尤其开发 IO 密集型服务的时候，选择 WebFlux 去实现。</li>
+</ul>
+<h4>编程模型</h4>
+<p>Spring 5 web 模块包含了 Spring WebFlux 的 HTTP 抽象。类似 Servlet API , WebFlux 提供了 WebHandler API 去定义非阻塞 API 抽象接口。可以选择以下两种编程模型实现：</p>
+<ul>
+<li>注解控制层。和 MVC 保持一致，WebFlux 也支持响应性 @RequestBody 注解。</li>
+<li>功能性端点。基于 lambda 轻量级编程模型，用来路由和处理请求的小工具。和上面最大的区别就是，这种模型，全程控制了请求 - 响应的生命流程</li>
+</ul>
+<h4>内嵌容器</h4>
+<p>跟 Spring Boot 大框架一样启动应用，但 WebFlux 默认是通过 Netty 启动，并且自动设置了默认端口为 8080。另外还提供了对 Jetty、Undertow 等容器的支持。开发者自行在添加对应的容器 Starter 组件依赖，即可配置并使用对应内嵌容器实例。</p>
+<p>但是要注意，必须是 Servlet 3.1+ 容器，如 Tomcat、Jetty；或者非 Servlet 容器，如 Netty 和 Undertow。</p>
+<h4>Starter 组件</h4>
+<p>跟 Spring Boot 大框架一样，Spring Boot Webflux 提供了很多 “开箱即用” 的 Starter 组件。Starter 组件是可被加载在应用中的 Maven 依赖项。只需要在 Maven 配置中添加对应的依赖配置，即可使用对应的 Starter 组件。例如，添加 <code>spring-boot-starter-webflux</code> 依赖，就可用于构建响应式 API 服务，其包含了 Web Flux 和 Tomcat 内嵌容器等。</p>
+<p>开发中，很多功能是通过添加 Starter 组件的方式来进行实现。那么，Spring Boot 2.x 常用的 Starter 组件有哪些呢？</p>
+<h3>Spring Boot 2.0 WebFlux 组件</h3>
+<p>Spring Boot WebFlux 官方提供了很多 Starter 组件，每个模块会有多种技术实现选型支持，来实现各种复杂的业务需求：</p>
+<ul>
+<li>Web：Spring WebFlux</li>
+<li>模板引擎：Thymeleaf</li>
+<li>存储：Redis、MongoDB、Cassandra，不支持 MySQL</li>
+<li>内嵌容器：Tomcat、Jetty、Undertow</li>
+</ul>
+<h3>Spring Initializr 快速构建项目骨架</h3>
+<p>Spring Boot Maven 工程，就是普通的 Maven 工程，加入了对应的 Spring Boot 依赖即可。Spring Initializr 则是像代码生成器一样，自动就给你出来了一个 Spring Boot Maven 工程。Spring Initializr 有两种方式可以得到 Spring Boot Maven 骨架工程：</p>
+<h4>start.spring.io 在线生成</h4>
+<p>Spring 官方提供了名为 Spring Initializr 的网站，去引导你快速生成 Spring Boot 应用。网站地址，<a href="https://start.spring.io/">详见这里</a>，操作步骤如下：</p>
+<p>第一步，选择 Maven 或者 Gradle 构建工具，开发语言 Java 、Kotlin 或者 Groovy，最后确定 Spring Boot 版本号。这里默认选择 Maven 构建工具、Java 开发语言和 Spring Boot 2.0.1。</p>
+<p>第二步，输入 Maven 工程信息，即项目组 groupId 和名字 artifactId，这里对应 Maven 信息为：</p>
+<ul>
+<li>groupId：springboot</li>
+<li>artifactId：sspringboot-webflux-1-quickstart</li>
+</ul>
+<p>这里默认版本号 version 为 0.0.1-SNAPSHOT，三个属性在 Maven 依赖仓库是唯一标识的。</p>
+<p>第三步，选择工程需要的 Starter 组件和其他依赖，最后单击“生成”按钮，即可获得骨架工程压缩包，这里快速入门，只要选择 Reactive Web 即可，如图所示。</p>
+<p><img src="assets/e8756dce7ada604d9f29f2fd61d0f1721523318.png" alt="img"></p>
+<h3>配置 POM 依赖</h3>
+<p>检查工程 POM 文件中，是否配置了 spring-boot-starter-webflux 依赖。如果是上面自动生成的，配置如下：</p>
+<pre><code>  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-starter-webflux&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+      &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;io.projectreactor&lt;/groupId&gt;
+      &lt;artifactId&gt;reactor-test&lt;/artifactId&gt;
+      &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+
+  &lt;build&gt;
+    &lt;plugins&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+      &lt;/plugin&gt;
+    &lt;/plugins&gt;
+  &lt;/build&gt;
+
+</code></pre>
+<p>spring-boot-starter-webflux 依赖，是我们核心需要学习 webflux 的包，里面默认包含了 spring-boot-starter-reactor-netty 、spring 5 webflux 包，也就是说默认是通过 netty 启动的。</p>
+<p>reactor-test、spring-boot-starter-test 两个依赖搭配是用于单元测试。</p>
+<p>spring-boot-maven-plugin 是 Spring Boot Maven 插件，可以运行、编译等调用。</p>
+<h3>编写处理器类 Handler</h3>
+<p>新建包 org.spring.springboot.handler，作为编写功能处理类。新建城市（City）例子的处理类 CityHandler，代码如下：</p>
+<pre><code>import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Mono;
+
+@Component
+public class CityHandler {
+
+    public Mono&lt;ServerResponse&gt; helloCity(ServerRequest request) {
+        return ServerResponse.ok().contentType(MediaType.TEXT_PLAIN)
+                .body(BodyInserters.fromObject("Hello, City!"));
+    }
+}
+
+</code></pre>
+<p>ServerResponse 是对响应的封装，可以设置响应状态、响应头、响应正文。比如 ok 代表的是 200 响应码、MediaType 枚举是代表这文本内容类型、返回的是 String 的对象。</p>
+<p>这里用 Mono 作为返回对象，是因为返回包含了一个 ServerResponse 对象，而不是多个元素。</p>
+<h3>编写路由器类 Router</h3>
+<p>新建 org.spring.springboot.router 包，作为编写路由器类。新建城市（City）例子的路由类 CityRouter，代码如下：</p>
+<pre><code>import org.spring.springboot.handler.CityHandler;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.server.RequestPredicates;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.RouterFunctions;
+import org.springframework.web.reactive.function.server.ServerResponse;
+
+@Configuration
+public class CityRouter {
+
+    @Bean
+    public RouterFunction&lt;ServerResponse&gt; routeCity(CityHandler cityHandler) {
+        return RouterFunctions
+                .route(RequestPredicates.GET("/hello")
+                                .and(RequestPredicates.accept(MediaType.TEXT_PLAIN)),
+                        cityHandler::helloCity);
+    }
+
+}
+
+</code></pre>
+<p>RouterFunctions 对请求路由处理类，即将请求路由到处理器，这里将一个 GET 请求 /hello 路由到处理器 cityHandler 的 helloCity 方法上。跟 Spring MVC 模式下的 HandleMapping 的作用类似。</p>
+<p>RouterFunctions.route(RequestPredicate, HandlerFunction) 方法，对应的入参是请求参数和处理函数，如果请求匹配，就调用对应的处理器函数。</p>
+<p>到这里一个简单的服务就写好了，下面怎么运行该服务。</p>
+<h3>启动运行项目</h3>
+<p>一个简单的 Spring Boot Webflux 工程就开发完毕了，下面运行工程验证下。使用 IDEA 右侧工具栏，点击 Maven Project Tab ，点击使用下 Maven 插件的 install 命令，或者使用命令行的形式，在工程根目录下，执行 Maven 清理和安装工程的指令：</p>
+<pre><code>cd springboot-webflux-1-quickstart
+mvn clean install
+
+</code></pre>
+<p>在控制台中看到成功的输出：</p>
+<pre><code>... 省略
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 01:30 min
+[INFO] Finished at: 2017-10-15T10:00:54+08:00
+[INFO] Final Memory: 31M/174M
+[INFO] ------------------------------------------------------------------------
+
+</code></pre>
+<h4>运行工程</h4>
+<p>在 IDEA 中执行 Application 类启动，任意正常模式或者 Debug 模式，可以在控制台看到成功运行的输出：</p>
+<pre><code>... 省略
+2018-04-10 08:43:39.932  INFO 2052 --- [ctor-http-nio-1] r.ipc.netty.tcp.BlockingNettyContext     : Started HttpServer on /0:0:0:0:0:0:0:0:8080
+2018-04-10 08:43:39.935  INFO 2052 --- [           main] o.s.b.web.embedded.netty.NettyWebServer  : Netty started on port(s): 8080
+2018-04-10 08:43:39.960  INFO 2052 --- [           main] org.spring.springboot.Application        : Started Application in 6.547 seconds (JVM running for 9.851)
+
+</code></pre>
+<p>一看，确实是 Netty 启动的。</p>
+<p>打开浏览器，访问 /hello 地址，会看到如图所示的返回结果：</p>
+<p><img src="assets/42a9f1eaa1ee54923556727eac2216481523320.png" alt="file"></p>
+<h3>总结</h3>
+<p>本文主要讲了 Spring Boot 2.0 WebFlux 背景和快速入门使用，用的是基于功能性端点去创建一个服务，但这个有点代码偏多。下一课一个 CRUD 我们使用注解控制层，让开发更方便。</p>
+</div>
+                    </div><div class="book-post">
+
+                        <p id="tip" align="center"></p>
+
+                        <div><h1>03 WebFlux Web CRUD 实践</h1>
+
+<p>上一篇基于功能性端点去创建一个简单服务，实现了 Hello。这一篇用 Spring Boot WebFlux 的注解控制层技术创建一个 CRUD WebFlux 应用，让开发更方便。这里我们不对数据库储存进行访问，因为后续会讲到，而且这里主要是讲一个完整的 WebFlux CRUD。</p>
+
+<h3>结构</h3>
+
+<p>这个工程会对城市（City）进行管理实现 CRUD 操作。该工程创建编写后，得到下面的结构，其目录结构如下：</p>
+
+<pre><code>├── pom.xml
+
+├── src
+
+│&amp;nbsp;&amp;nbsp; └── main
+
+│&amp;nbsp;&amp;nbsp;     ├── java
+
+│&amp;nbsp;&amp;nbsp;     │&amp;nbsp;&amp;nbsp; └── org
+
+│&amp;nbsp;&amp;nbsp;     │&amp;nbsp;&amp;nbsp;     └── spring
+
+│&amp;nbsp;&amp;nbsp;     │&amp;nbsp;&amp;nbsp;         └── springboot
+
+│&amp;nbsp;&amp;nbsp;     │&amp;nbsp;&amp;nbsp;             ├── Application.java
+
+│&amp;nbsp;&amp;nbsp;     │&amp;nbsp;&amp;nbsp;             ├── dao
+
+│&amp;nbsp;&amp;nbsp;     │&amp;nbsp;&amp;nbsp;             │&amp;nbsp;&amp;nbsp; └── CityRepository.java
+
+│&amp;nbsp;&amp;nbsp;     │&amp;nbsp;&amp;nbsp;             ├── domain
+
+│&amp;nbsp;&amp;nbsp;     │&amp;nbsp;&amp;nbsp;             │&amp;nbsp;&amp;nbsp; └── City.java
+
+│&amp;nbsp;&amp;nbsp;     │&amp;nbsp;&amp;nbsp;             ├── handler
+
+│&amp;nbsp;&amp;nbsp;     │&amp;nbsp;&amp;nbsp;             │&amp;nbsp;&amp;nbsp; └── CityHandler.java
+
+│&amp;nbsp;&amp;nbsp;     │&amp;nbsp;&amp;nbsp;             └── webflux
+
+│&amp;nbsp;&amp;nbsp;     │&amp;nbsp;&amp;nbsp;                 └── controller
+
+│&amp;nbsp;&amp;nbsp;     │&amp;nbsp;&amp;nbsp;                     └── CityWebFluxController.java
+
+│&amp;nbsp;&amp;nbsp;     └── resources
+
+│&amp;nbsp;&amp;nbsp;         └── application.properties
+
+└── target
+
+
+
+</code></pre>
+
+<p>如目录结构，我们需要编写的内容按顺序有：</p>
+
+<ul>
+
+<li>对象</li>
+
+<li>数据访问层类 Repository</li>
+
+<li>处理器类 Handler</li>
+
+<li>控制器类 Controller</li>
+
+</ul>
+
+<h3>对象</h3>
+
+<p>新建包 org.spring.springboot.domain，作为编写城市实体对象类。新建城市（City）对象 City，代码如下：</p>
+
+<pre><code>/**
+
+ * 城市实体类
+
+ *
+
+ */
+
+public class City {
+
+
+
+    /**
+
+     * 城市编号
+
+     */
+
+    private Long id;
+
+
+
+    /**
+
+     * 省份编号
+
+     */
+
+    private Long provinceId;
+
+
+
+    /**
+
+     * 城市名称
+
+     */
+
+    private String cityName;
+
+
+
+    /**
+
+     * 描述
+
+     */
+
+    private String description;
+
+
+
+    public Long getId() {
+
+        return id;
+
+    }
+
+
+
+    public void setId(Long id) {
+
+        this.id = id;
+
+    }
+
+
+
+    public Long getProvinceId() {
+
+        return provinceId;
+
+    }
+
+
+
+    public void setProvinceId(Long provinceId) {
+
+        this.provinceId = provinceId;
+
+    }
+
+
+
+    public String getCityName() {
+
+        return cityName;
+
+    }
+
+
+
+    public void setCityName(String cityName) {
+
+        this.cityName = cityName;
+
+    }
+
+
+
+    public String getDescription() {
+
+        return description;
+
+    }
+
+
+
+    public void setDescription(String description) {
+
+        this.description = description;
+
+    }
+
+}
+
+
+
+</code></pre>
+
+<p>城市包含了城市编号、省份编号、城市名称和描述。具体开发中，会使用 Lombok 工具来消除冗长的 Java 代码，尤其是 POJO 的 getter / setter 方法，<a href="https://projectlombok.org">具体查看 Lombok 官网地址</a>。</p>
+
+<h3>数据访问层 CityRepository</h3>
+
+<p>新建包 org.spring.springboot.dao，作为编写城市数据访问层类 Repository。新建 CityRepository，代码如下：</p>
+
+<pre><code>import org.spring.springboot.domain.City;
+
+import org.springframework.stereotype.Repository;
+
+
+
+import java.util.Collection;
+
+import java.util.concurrent.ConcurrentHashMap;
+
+import java.util.concurrent.ConcurrentMap;
+
+import java.util.concurrent.atomic.AtomicLong;
+
+
+
+@Repository
+
+public class CityRepository {
+
+
+
+    private ConcurrentMap&lt;Long, City&gt; repository = new ConcurrentHashMap&lt;&gt;();
+
+
+
+    private static final AtomicLong idGenerator = new AtomicLong(0);
+
+
+
+    public Long save(City city) {
+
+        Long id = idGenerator.incrementAndGet();
+
+        city.setId(id);
+
+        repository.put(id, city);
+
+        return id;
+
+    }
+
+
+
+    public Collection&lt;City&gt; findAll() {
+
+        return repository.values();
+
+    }
+
+
+
+    public City findCityById(Long id) {
+
+        return repository.get(id);
+
+    }
+
+
+
+    public Long updateCity(City city) {
+
+        repository.put(city.getId(), city);
+
+        return city.getId();
+
+    }
+
+
+
+    public Long deleteCity(Long id) {
+
+        repository.remove(id);
+
+        return id;
+
+    }
+
+}
+
+
+
+</code></pre>
+
+<p>@Repository 用于标注数据访问组件，即 DAO 组件。实现代码中使用名为 repository 的 Map 对象作为内存数据存储，并对对象具体实现了具体业务逻辑。CityRepository 负责将 Book 持久层（数据操作）相关的封装组织，完成新增、查询、删除等操作。</p>
+
+<p>这里不会涉及到数据存储这块，具体数据存储会在后续介绍。</p>
+
+<h3>处理器类 Handler</h3>
+
+<p>新建包 org.spring.springboot.handler，作为编写城市处理器类 CityHandler。新建 CityHandler，代码如下：</p>
+
+<pre><code>import org.spring.springboot.dao.CityRepository;
+
+import org.spring.springboot.domain.City;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.stereotype.Component;
+
+import reactor.core.publisher.Flux;
+
+import reactor.core.publisher.Mono;
+
+
+
+@Component
+
+public class CityHandler {
+
+
+
+    private final CityRepository cityRepository;
+
+
+
+    @Autowired
+
+    public CityHandler(CityRepository cityRepository) {
+
+        this.cityRepository = cityRepository;
+
+    }
+
+
+
+    public Mono&lt;Long&gt; save(City city) {
+
+        return Mono.create(cityMonoSink -&gt; cityMonoSink.success(cityRepository.save(city)));
+
+    }
+
+
+
+    public Mono&lt;City&gt; findCityById(Long id) {
+
+        return Mono.justOrEmpty(cityRepository.findCityById(id));
+
+    }
+
+
+
+    public Flux&lt;City&gt; findAllCity() {
+
+        return Flux.fromIterable(cityRepository.findAll());
+
+    }
+
+
+
+    public Mono&lt;Long&gt; modifyCity(City city) {
+
+        return Mono.create(cityMonoSink -&gt; cityMonoSink.success(cityRepository.updateCity(city)));
+
+    }
+
+
+
+    public Mono&lt;Long&gt; deleteCity(Long id) {
+
+        return Mono.create(cityMonoSink -&gt; cityMonoSink.success(cityRepository.deleteCity(id)));
+
+    }
+
+}
+
+
+
+</code></pre>
+
+<p>@Component 泛指组件，当组件不好归类的时候，使用该注解进行标注，然后用 final 和 @Autowired 标注在构造器注入 CityRepository Bean，代码如下：</p>
+
+<pre><code>    private final CityRepository cityRepository;
+
+
+
+    @Autowired
+
+    public CityHandler(CityRepository cityRepository) {
+
+        this.cityRepository = cityRepository;
+
+    }
+
+
+
+</code></pre>
+
+<p>从返回值可以看出，Mono 和 Flux 适用于两个场景，即：</p>
+
+<ul>
+
+<li>Mono：实现发布者，并返回 0 或 1 个元素，即单对象。</li>
+
+<li>Flux：实现发布者，并返回 N 个元素，即 List 列表对象。</li>
+
+</ul>
+
+<p>有人会问，这为啥不直接返回对象，比如返回 City/Long/List。原因是，直接使用 Flux 和 Mono 是非阻塞写法，相当于回调方式。利用函数式可以减少了回调，因此会看不到相关接口。这恰恰是 WebFlux 的好处：集合了非阻塞 + 异步。</p>
+
+<h3>Mono</h3>
+
+<p>Mono 是什么？ 官方描述如下：A Reactive Streams Publisher with basic rx operators that completes successfully by emitting an element, or with an error.</p>
+
+<p>Mono 是响应流 Publisher 具有基础 rx 操作符，可以成功发布元素或者错误，如图所示：</p>
+
+<p><img src="assets/9e9fc4aec1e96acb7cdc942aad0967e21523363.png" alt="file"></p>
+
+<p>Mono 常用的方法有：</p>
+
+<ul>
+
+<li>Mono.create()：使用 MonoSink 来创建 Mono。</li>
+
+<li>Mono.justOrEmpty()：从一个 Optional 对象或 null 对象中创建 Mono。</li>
+
+<li>Mono.error()：创建一个只包含错误消息的 Mono。</li>
+
+<li>Mono.never()：创建一个不包含任何消息通知的 Mono。</li>
+
+<li>Mono.delay()：在指定的延迟时间之后，创建一个 Mono，产生数字 0 作为唯一值。</li>
+
+</ul>
+
+<h3>Flux</h3>
+
+<p>Flux 是什么？官方描述如下：A Reactive Streams Publisher with rx operators that emits 0 to N elements, and then completes (successfully or with an error).</p>
+
+<p>Flux 是响应流 Publisher 具有基础 rx 操作符，可以成功发布 0 到 N 个元素或者错误。Flux 其实是 Mono 的一个补充，如图所示：</p>
+
+<p><img src="assets/37dd113ad50858e41d17143911696e401523363.png" alt="file"></p>
+
+<p>所以要注意：如果知道 Publisher 是 0 或 1 个，则用 Mono。</p>
+
+<p>Flux 最值得一提的是 fromIterable 方法，fromIterable(Iterable it) 可以发布 Iterable 类型的元素。当然，Flux 也包含了基础的操作：map、merge、concat、flatMap、take，这里就不展开介绍了。</p>
+
+<h3>控制器类 Controller</h3>
+
+<p>Spring Boot WebFlux 开发中，不需要配置。Spring Boot WebFlux 可以使用自动配置加注解驱动的模式来进行开发。</p>
+
+<p>新建包目录 org.spring.springboot.webflux.controller，并在目录中创建名为 CityWebFluxController 来处理不同的 HTTP Restful 业务请求。代码如下：</p>
+
+<pre><code>import org.spring.springboot.domain.City;
+
+import org.spring.springboot.handler.CityHandler;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.web.bind.annotation.*;
+
+import reactor.core.publisher.Flux;
+
+import reactor.core.publisher.Mono;
+
+
+
+@RestController
+
+@RequestMapping(value = "/city")
+
+public class CityWebFluxController {
+
+
+
+    @Autowired
+
+    private CityHandler cityHandler;
+
+
+
+    @GetMapping(value = "/{id}")
+
+    public Mono&lt;City&gt; findCityById(@PathVariable("id") Long id) {
+
+        return cityHandler.findCityById(id);
+
+    }
+
+
+
+    @GetMapping()
+
+    public Flux&lt;City&gt; findAllCity() {
+
+        return cityHandler.findAllCity();
+
+    }
+
+
+
+    @PostMapping()
+
+    public Mono&lt;Long&gt; saveCity(@RequestBody City city) {
+
+        return cityHandler.save(city);
+
+    }
+
+
+
+    @PutMapping()
+
+    public Mono&lt;Long&gt; modifyCity(@RequestBody City city) {
+
+        return cityHandler.modifyCity(city);
+
+    }
+
+
+
+    @DeleteMapping(value = "/{id}")
+
+    public Mono&lt;Long&gt; deleteCity(@PathVariable("id") Long id) {
+
+        return cityHandler.deleteCity(id);
+
+    }
+
+}
+
+
+
+</code></pre>
+
+<p>这里按照 REST 风格实现接口，那具体什么是 REST?</p>
+
+<p>REST 是属于 Web 自身的一种架构风格，是在 HTTP 1.1 规范下实现的。Representational State Transfer 全称翻译为表现层状态转化。Resource：资源。比如 newsfeed；Representational：表现形式，比如用 JSON、富文本等；State Transfer：状态变化。通过 HTTP 动作实现。</p>
+
+<p>理解 REST，要明白五个关键要素：</p>
+
+<ul>
+
+<li>资源（Resource）</li>
+
+<li>资源的表述（Representation）</li>
+
+<li>状态转移（State Transfer）</li>
+
+<li>统一接口（Uniform Interface）</li>
+
+<li>超文本驱动（Hypertext Driven）</li>
+
+</ul>
+
+<p>6 个主要特性：</p>
+
+<ul>
+
+<li>面向资源（Resource Oriented）</li>
+
+<li>可寻址（Addressability）</li>
+
+<li>连通性（Connectedness）</li>
+
+<li>无状态（Statelessness）</li>
+
+<li>统一接口（Uniform Interface）</li>
+
+<li>超文本驱动（Hypertext Driven）</li>
+
+</ul>
+
+<p>具体这里就不一一展开，<a href="http://www.infoq.com/cn/articles/understanding-restful-style">详见这里</a>。</p>
+
+<p>请求入参、Filters、重定向、Conversion、formatting 等知识会和以前 MVC 的知识一样，<a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html">详情见文档</a>。</p>
+
+<h3>运行工程</h3>
+
+<p>一个 CRUD 的 Spring Boot Webflux 工程就开发完毕了，下面运行工程验证下。使用 IDEA 右侧工具栏，点击 Maven Project Tab，点击使用下 Maven 插件的 install 命令，或者使用命令行的形式，在工程根目录下，执行 Maven 清理和安装工程的指令：</p>
+
+<pre><code>cd springboot-webflux-2-restful
+
+mvn clean install
+
+
+
+</code></pre>
+
+<p>在控制台中看到成功的输出：</p>
+
+<pre><code>... 省略
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] BUILD SUCCESS
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] Total time: 01:30 min
+
+[INFO] Finished at: 2017-10-15T10:00:54+08:00
+
+[INFO] Final Memory: 31M/174M
+
+[INFO] ------------------------------------------------------------------------
+
+
+
+</code></pre>
+
+<p>在 IDEA 中执行 Application 类启动，任意正常模式或者 Debug 模式。可以在控制台看到成功运行的输出：</p>
+
+<pre><code>... 省略
+
+2018-04-10 08:43:39.932  INFO 2052 --- [ctor-http-nio-1] r.ipc.netty.tcp.BlockingNettyContext     : Started HttpServer on /0:0:0:0:0:0:0:0:8080
+
+2018-04-10 08:43:39.935  INFO 2052 --- [           main] o.s.b.web.embedded.netty.NettyWebServer  : Netty started on port(s): 8080
+
+2018-04-10 08:43:39.960  INFO 2052 --- [           main] org.spring.springboot.Application        : Started Application in 6.547 seconds (JVM running for 9.851)
+
+
+
+</code></pre>
+
+<p>打开 POST MAN 工具，开发必备。进行下面操作：</p>
+
+<p>新增城市信息 POST http://127.0.0.1:8080/city</p>
+
+<p><img src="assets/7ac13ad0583cc4e4ac49f6b9281706551523362.png" alt="file"></p>
+
+<p>获取城市信息列表 GET http://127.0.0.1:8080/city</p>
+
+<p><img src="assets/0fad82f29463fc7fe35900030500a0491523362.png" alt="file"></p>
+
+<p>其他接口就不演示了。</p>
+
+<h3>总结</h3>
+
+<p>这里，探讨了 Spring WebFlux 的一些功能，构建没有底层数据库的基本 CRUD 工程。为了更好的展示了如何创建 Flux 流，以及如何对其进行操作，下篇内容会讲到如何操作数据存储。</p>
+
+</div>
+
+                    </div><div class="book-post">
+
+                        <p id="tip" align="center"></p>
+
+                        <div><h1>04 WebFlux 整合 MongoDB</h1>
+
+<h3>前言</h3>
+
+<p>上一课的内容讲解了用 Map 数据结构内存式存储了数据，这样数据就不会持久化，本文我们用 MongoDB 来实现 WebFlux 对数据源的操作。</p>
+
+<p>什么是 MongoDB？<a href="https://www.mongodb.com/">详见官网</a>。</p>
+
+<p>MongoDB 是一个基于分布式文件存储的数据库，由 C++ 语言编写，旨在为 Web 应用提供可扩展的高性能数据存储解决方案。</p>
+
+<p>MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库。</p>
+
+<p>由于操作方便，本文用 Docker 启动一个 MognoDB 服务。如果 Docker 不会安装，请参考此文：<a href="https://www.jianshu.com/p/f272726db9c5">Docker 安装与基本操作</a>。</p>
+
+<p><strong>Docker 安装 MognoDB 并启动如下。</strong></p>
+
+<p>（1）创建挂载目录：</p>
+
+<pre><code>docker volume create mongo_data_db
+
+docker volume create mongo_data_configdb
+
+
+
+</code></pre>
+
+<p>（2）启动 MognoDB：</p>
+
+<pre><code>docker run -d \
+
+    --name mongo \
+
+    -v mongo_data_configdb:/data/configdb \
+
+    -v mongo_data_db:/data/db \
+
+    -p 27017:27017 \
+
+    mongo \
+
+    --auth
+
+
+
+</code></pre>
+
+<p>（3）初始化管理员账号：</p>
+
+<pre><code>docker exec -it mongo     mongo              admin
+
+                        // 容器名   // mongo命令 数据库名
+
+
+
+# 创建最高权限用户
+
+db.createUser({ user: 'admin', pwd: 'admin', roles: [ { role: "root", db: "admin" } ] });
+
+
+
+</code></pre>
+
+<p>（4）测试连通性：</p>
+
+<pre><code>docker run -it --rm --link mongo:mongo mongo mongo -u admin -p admin --authenticationDatabase admin mongo/admin
+
+
+
+</code></pre>
+
+<h4>MognoDB 基本操作</h4>
+
+<p>类似 MySQL 命令，显示库列表：</p>
+
+<pre><code>show dbs
+
+
+
+</code></pre>
+
+<p>使用某数据库：</p>
+
+<pre><code>use admin
+
+
+
+</code></pre>
+
+<p>显示表列表：</p>
+
+<pre><code>show collections
+
+
+
+</code></pre>
+
+<p>如果存在 city 表，格式化显示 city 表内容：</p>
+
+<pre><code>db.city.find().pretty()
+
+
+
+</code></pre>
+
+<h3>结构</h3>
+
+<p>类似上面讲的工程搭建，新建一个工程编写此案例。工程如图：</p>
+
+<p><img src="assets/02b199c85e5548663557753d48f4b95c1523803.png" alt="img"></p>
+
+<p>目录核心如下：</p>
+
+<ul>
+
+<li>pom.xml maven 配置；</li>
+
+<li>application.properties 配置文件；</li>
+
+<li>dao 数据访问层，本文要点。</li>
+
+</ul>
+
+<h3>新增 POM 依赖与配置</h3>
+
+<p>在 pom.xml 配置新的依赖：</p>
+
+<pre><code>    &lt;!-- Spring Boot 响应式 MongoDB 依赖 --&gt;
+
+    &lt;dependency&gt;
+
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+
+      &lt;artifactId&gt;spring-boot-starter-data-mongodb-reactive&lt;/artifactId&gt;
+
+    &lt;/dependency&gt;
+
+
+
+</code></pre>
+
+<p>类似配了 MySQL 和 JDBC 驱动，肯定得去配置数据库。在 application.properties 配置下上面启动的 MongoDB 配置：</p>
+
+<p>数据库名为 admin，账号密码也为 admin。</p>
+
+<pre><code>spring.data.mongodb.host=localhost
+
+spring.data.mongodb.database=admin
+
+spring.data.mongodb.port=27017
+
+spring.data.mongodb.username=admin
+
+spring.data.mongodb.password=admin
+
+
+
+</code></pre>
+
+<p>这就一个巨大的问题了，为啥不用我们常用的 MySQL 数据库呢？</p>
+
+<p>答案是 Spring Data Reactive Repositories 目前支持 Mongo、Cassandra、Redis、Couchbase。不支持 MySQL，那究竟为啥呢？那就说明下 JDBC 和 Spring Data 的关系。</p>
+
+<p>Spring Data Reactive Repositories 突出点是 Reactive，即非阻塞的。区别如下：</p>
+
+<ul>
+
+<li>基于 JDBC 实现的 Spring Data，比如 Spring Data JPA 是阻塞的。原理是基于阻塞 IO 模型 消耗每个调用数据库的线程（Connection）。</li>
+
+<li>事务只能在一个 java.sql.Connection 使用，即一个事务一个操作。</li>
+
+</ul>
+
+<p>那如何异步非阻塞封装下 JDBC 的思想也不新鲜，Scala 库 Slick 3 就实现了。简单的实现原理如下：</p>
+
+<ul>
+
+<li>一个事务多个操作，那么共享一个 java.sql.Connection，可以使用透明事务管理，利用回调编程模型去传递。</li>
+
+<li>保持有限的空闲连接。</li>
+
+</ul>
+
+<p>最后，我坚信非阻塞 JDBC 很快就会出现的，这样我们就开心的调用 MySQL 了。</p>
+
+<h3>对象</h3>
+
+<p>修改 org.spring.springboot.domain 包里面的城市实体对象类。修改城市（City）对象 City，代码如下：</p>
+
+<pre><code>import org.springframework.data.annotation.Id;
+
+
+
+/**
+
+ * 城市实体类
+
+ *
+
+ */
+
+public class City {
+
+
+
+    /**
+
+     * 城市编号
+
+     */
+
+    @Id
+
+    private Long id;
+
+
+
+    /**
+
+     * 省份编号
+
+     */
+
+    private Long provinceId;
+
+
+
+    /**
+
+     * 城市名称
+
+     */
+
+    private String cityName;
+
+
+
+    /**
+
+     * 描述
+
+     */
+
+    private String description;
+
+
+
+    public Long getId() {
+
+        return id;
+
+    }
+
+
+
+    public void setId(Long id) {
+
+        this.id = id;
+
+    }
+
+
+
+    public Long getProvinceId() {
+
+        return provinceId;
+
+    }
+
+
+
+    public void setProvinceId(Long provinceId) {
+
+        this.provinceId = provinceId;
+
+    }
+
+
+
+    public String getCityName() {
+
+        return cityName;
+
+    }
+
+
+
+    public void setCityName(String cityName) {
+
+        this.cityName = cityName;
+
+    }
+
+
+
+    public String getDescription() {
+
+        return description;
+
+    }
+
+
+
+    public void setDescription(String description) {
+
+        this.description = description;
+
+    }
+
+}
+
+
+
+</code></pre>
+
+<p>@Id 注解标记对应库表的主键或者唯一标识符。因为这个是我们的 DO，数据访问对象一一映射到数据存储。</p>
+
+<h3>MongoDB 数据访问层 CityRepository</h3>
+
+<p>修改 CityRepository 类，代码如下：</p>
+
+<pre><code>import org.spring.springboot.domain.City;
+
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+
+import org.springframework.stereotype.Repository;
+
+
+
+@Repository
+
+public interface CityRepository extends ReactiveMongoRepository&lt;City, Long&gt; {
+
+
+
+}
+
+
+
+</code></pre>
+
+<p>CityRepository 接口只要继承 ReactiveMongoRepository 类即可，默认会提供很多实现，比如 CRUD 和列表查询参数相关的实现。ReactiveMongoRepository 接口默认实现了如下：</p>
+
+<pre><code>    &lt;S extends T&gt; Mono&lt;S&gt; insert(S var1);
+
+
+
+    &lt;S extends T&gt; Flux&lt;S&gt; insert(Iterable&lt;S&gt; var1);
+
+
+
+    &lt;S extends T&gt; Flux&lt;S&gt; insert(Publisher&lt;S&gt; var1);
+
+
+
+    &lt;S extends T&gt; Flux&lt;S&gt; findAll(Example&lt;S&gt; var1);
+
+
+
+    &lt;S extends T&gt; Flux&lt;S&gt; findAll(Example&lt;S&gt; var1, Sort var2);
+
+
+
+</code></pre>
+
+<p>如图，ReactiveMongoRepository 的集成类 ReactiveSortingRepository、ReactiveCrudRepository 实现了很多常用的接口：</p>
+
+<p><img src="assets/40689f2921c9e1289a03e12acef6b80e1523882.png" alt="file"></p>
+
+<p>ReactiveCrudRepository 接口如图所示：</p>
+
+<p><img src="assets/428841a694e29b128fa99d93bc9fcb391523882.png" alt="img"></p>
+
+<p>另外可以看出，接口的命名是遵循规范的，常用命名规则如下：</p>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th align="left">关键字</th>
+
+<th align="left">方法命名</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td align="left">And</td>
+
+<td align="left">findByNameAndPwd</td>
+
+</tr>
+
+<tr>
+
+<td align="left">Or</td>
+
+<td align="left">findByNameOrSex</td>
+
+</tr>
+
+<tr>
+
+<td align="left">Is</td>
+
+<td align="left">findById</td>
+
+</tr>
+
+<tr>
+
+<td align="left">Between</td>
+
+<td align="left">findByIdBetween</td>
+
+</tr>
+
+<tr>
+
+<td align="left">Like</td>
+
+<td align="left">findByNameLike</td>
+
+</tr>
+
+<tr>
+
+<td align="left">NotLike</td>
+
+<td align="left">findByNameNotLike</td>
+
+</tr>
+
+<tr>
+
+<td align="left">OrderBy</td>
+
+<td align="left">findByIdOrderByXDesc</td>
+
+</tr>
+
+<tr>
+
+<td align="left">Not</td>
+
+<td align="left">findByNameNot</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+<p>常用案例，代码如下：</p>
+
+<pre><code>    Flux&lt;Person&gt; findByLastname(String lastname);
+
+
+
+    @Query("{ 'firstname': ?0, 'lastname': ?1}")
+
+    Mono&lt;Person&gt; findByFirstnameAndLastname(String firstname, String lastname);
+
+
+
+    // Accept parameter inside a reactive type for deferred execution
+
+    Flux&lt;Person&gt; findByLastname(Mono&lt;String&gt; lastname);
+
+
+
+    Mono&lt;Person&gt; findByFirstnameAndLastname(Mono&lt;String&gt; firstname, String lastname);
+
+
+
+    @Tailable // Use a tailable cursor
+
+    Flux&lt;Person&gt; findWithTailableCursorBy();
+
+
+
+</code></pre>
+
+<h4>源码层面</h4>
+
+<p>ReactiveCrudRepository 抽象在 reactive 包，如图：</p>
+
+<p><img src="assets/ab17d9ea07db0b4fc9b5d310655b98f51523883.png" alt="img"></p>
+
+<p>这里我们可以看出，支持了 Reactive 还支持了 RxJava。对应老的 CrudRepository 新增了 ReactiveCrudRepository 接口及各种存储实现。</p>
+
+<h3>处理器类 Handler 和控制器类 Controller</h3>
+
+<p>修改下 Handler，代码如下：</p>
+
+<pre><code>@Component
+
+public class CityHandler {
+
+
+
+    private final CityRepository cityRepository;
+
+
+
+    @Autowired
+
+    public CityHandler(CityRepository cityRepository) {
+
+        this.cityRepository = cityRepository;
+
+    }
+
+
+
+    public Mono&lt;City&gt; save(City city) {
+
+        return cityRepository.save(city);
+
+    }
+
+
+
+    public Mono&lt;City&gt; findCityById(Long id) {
+
+
+
+        return cityRepository.findById(id);
+
+    }
+
+
+
+    public Flux&lt;City&gt; findAllCity() {
+
+
+
+        return cityRepository.findAll();
+
+    }
+
+
+
+    public Mono&lt;City&gt; modifyCity(City city) {
+
+
+
+        return cityRepository.save(city);
+
+    }
+
+
+
+    public Mono&lt;Long&gt; deleteCity(Long id) {
+
+        cityRepository.deleteById(id);
+
+        return Mono.create(cityMonoSink -&gt; cityMonoSink.success(id));
+
+    }
+
+}
+
+
+
+</code></pre>
+
+<p>不要对 Mono、Flux 陌生，把它当成对象即可。继续修改控制器类 Controller，代码如下：</p>
+
+<pre><code>@RestController
+
+@RequestMapping(value = "/city")
+
+public class CityWebFluxController {
+
+
+
+    @Autowired
+
+    private CityHandler cityHandler;
+
+
+
+    @GetMapping(value = "/{id}")
+
+    public Mono&lt;City&gt; findCityById(@PathVariable("id") Long id) {
+
+        return cityHandler.findCityById(id);
+
+    }
+
+
+
+    @GetMapping()
+
+    public Flux&lt;City&gt; findAllCity() {
+
+        return cityHandler.findAllCity();
+
+    }
+
+
+
+    @PostMapping()
+
+    public Mono&lt;City&gt; saveCity(@RequestBody City city) {
+
+        return cityHandler.save(city);
+
+    }
+
+
+
+    @PutMapping()
+
+    public Mono&lt;City&gt; modifyCity(@RequestBody City city) {
+
+        return cityHandler.modifyCity(city);
+
+    }
+
+
+
+    @DeleteMapping(value = "/{id}")
+
+    public Mono&lt;Long&gt; deleteCity(@PathVariable("id") Long id) {
+
+        return cityHandler.deleteCity(id);
+
+    }
+
+}
+
+
+
+</code></pre>
+
+<h3>运行工程</h3>
+
+<p>一个 CRUD 的 Spring Boot WebFlux 工程就开发完毕了，下面运行工程验证下。使用 IDEA 右侧工具栏，单击 Maven Project Tab 选项，点击使用 Maven 插件的 install 命令。或者使用命令行的形式，在工程根目录下，执行 Maven 清理和安装工程的指令：</p>
+
+<pre><code>cd springboot-webflux-3-mongodb
+
+mvn clean install
+
+
+
+</code></pre>
+
+<p>在控制台中看到成功的输出：</p>
+
+<pre><code>... 省略
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] BUILD SUCCESS
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] Total time: 01:30 min
+
+[INFO] Finished at: 2017-10-15T10:00:54+08:00
+
+[INFO] Final Memory: 31M/174M
+
+[INFO] ------------------------------------------------------------------------
+
+
+
+</code></pre>
+
+<p>在 IDEA 中执行 Application 类启动，任意正常模式或者 Debug 模式，可以在控制台看到成功运行的输出：</p>
+
+<pre><code>... 省略
+
+2018-04-10 08:43:39.932  INFO 2052 --- [ctor-http-nio-1] r.ipc.netty.tcp.BlockingNettyContext     : Started HttpServer on /0:0:0:0:0:0:0:0:8080
+
+2018-04-10 08:43:39.935  INFO 2052 --- [           main] o.s.b.web.embedded.netty.NettyWebServer  : Netty started on port(s): 8080
+
+2018-04-10 08:43:39.960  INFO 2052 --- [           main] org.spring.springboot.Application        : Started Application in 6.547 seconds (JVM running for 9.851)
+
+
+
+</code></pre>
+
+<p>打开 POST MAN 工具，开发必备。进行下面操作。</p>
+
+<p>新增城市信息 POST http://127.0.0.1:8080/city。</p>
+
+<p><img src="assets/f69fa5b09730de686ef4837824da48e71523883.png" alt="img"></p>
+
+<h4>连接 MongoDB，验证数据</h4>
+
+<p>连接 MongoDB：</p>
+
+<pre><code>docker run -it --rm --link mongo:mongo mongo mongo -u admin -p admin --authenticationDatabase admin mongo/admin
+
+
+
+</code></pre>
+
+<p><img src="assets/5d6d5003dcde1e358ab3a0a47ca08f951523884.png" alt="file"></p>
+
+<p>显示库列表：</p>
+
+<pre><code>show dbs
+
+
+
+</code></pre>
+
+<p>使用某数据库：</p>
+
+<pre><code>use admin
+
+
+
+</code></pre>
+
+<p>显示表列表：</p>
+
+<pre><code>show collections
+
+
+
+</code></pre>
+
+<p>如果存在 city 表，格式化显示 city 表内容：</p>
+
+<pre><code>db.city.find().pretty()
+
+
+
+</code></pre>
+
+<p><img src="assets/093c97deaa04b8855291fcb9765edd011523884.png" alt="img"></p>
+
+<h3>总结</h3>
+
+<p>这里探讨了 Spring WebFlux 的如何整合 MongoDB，整合其他存储 Cassandra、Redis、Couchbase 就大同小异了。下面，我们已经可以整合 Thymeleaf，更好的页面展示给大家，顺便让大家学习下 Thymeleaf 的基本用法。</p>
+
+</div>
+
+                    </div><div class="book-post">
+                        <p id="tip" align="center"></p>
+                        <div><h1>05 WebFlux 整合 Thymeleaf</h1>
+<p>上一篇介绍的是用 MongoDB 来实现 WebFlux 对数据源的操作，那么有了数据需要渲染到前台给用户展示，这就是本文关心的 View 层，View 的表现形式有很多，比如 JSON 和 HTML。开发中常用模板语言很常见的有 Thymeleaf、Freemarker等，那什么是模板语言？</p>
+<p>常见的模板语言都包含以下几个概念：数据（Data）、模板（Template）、模板引擎（Template Engine）和结果文档（Result Documents）。</p>
+<ul>
+<li>数据</li>
+</ul>
+<p>数据是信息的表现形式和载体，可以是符号、文字、数字、语音、图像、视频等。数据和信息是不可分离的，数据是信息的表达，信息是数据的内涵。数据本身没有意义，数据只有对实体行为产生影响时才成为信息。</p>
+<ul>
+<li>模板</li>
+</ul>
+<p>模板，是一个蓝图，即一个与类型无关的类。编译器在使用模板时，会根据模板实参对模板进行实例化，得到一个与类型相关的类。</p>
+<ul>
+<li>模板引擎</li>
+</ul>
+<p>模板引擎（这里特指用于 Web 开发的模板引擎）是为了使用户界面与业务数据（内容）分离而产生的，它可以生成特定格式的文档，用于网站的模板引擎就会生成一个标准的 HTML 文档。</p>
+<ul>
+<li>结果文档</li>
+</ul>
+<p>一种特定格式的文档，比如用于网站的模板引擎就会生成一个标准的 HTML 文档。</p>
+<p>模板语言用途广泛，常见的用途如下：</p>
+<ul>
+<li>页面渲染</li>
+<li>文档生成</li>
+<li>代码生成</li>
+<li>所有 “数据+模板=文本” 的应用场景</li>
+</ul>
+<p>Spring Boot 推荐使用的模板语言是 Thymeleaf，那什么是 Thymeleaf？</p>
+<p>官方的解释如下：</p>
+<pre><code>Thymeleaf is a modern server-side Java template engine for both web and standalone environments.
+
+</code></pre>
+<p>Thymeleaf 是现代的模板语言引擎，可以独立运行也可以服务于 Web，主要目标是为开发提供天然的模板，并且能在 HTML 里面准确的显示。</p>
+<p>Thymeleaf 是新一代 Java 模板引擎，在 Spring 4 后推荐使用。目前是 Spring 5 自然更加推荐。</p>
+<h3>结构</h3>
+<p>类似上面讲的工程搭建，新建一个工程编写此案例，工程图如图所示：</p>
+<p><img src="assets/3b8c0edab9491e422bef6003299895911524185.png" alt="img"></p>
+<p>目录如下：</p>
+<ul>
+<li>org.spring.springboot.webflux.controller：Controller 层</li>
+<li>org.spring.springboot.dao：数据操作层 DAO</li>
+<li>org.spring.springboot.domain：实体类</li>
+<li>org.spring.springboot.handler：业务逻辑层</li>
+<li>Application：应用启动类</li>
+<li>application.properties：应用配置文件</li>
+<li>pom.xml maven 配置</li>
+<li>application.properties 配置文件</li>
+</ul>
+<p>模板是会用到下面两个目录：</p>
+<ul>
+<li>static 目录是存放 CSS、JS 等资源文件；</li>
+<li>templates 目录是存放视图。</li>
+</ul>
+<p>本文重点在 Controller 层 和 templates 视图的编写。</p>
+<h3>新增 POM 依赖与配置</h3>
+<p>在 pom.xml 配置新的依赖：</p>
+<pre><code>  &lt;dependencies&gt;
+
+    &lt;!-- Spring Boot Web Flux 依赖 --&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-starter-webflux&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+
+    &lt;!-- 模板引擎 Thymeleaf 依赖 --&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-starter-thymeleaf&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+
+    &lt;!-- Spring Boot Test 依赖 --&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+      &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+
+    &lt;!-- Junit --&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;junit&lt;/groupId&gt;
+      &lt;artifactId&gt;junit&lt;/artifactId&gt;
+      &lt;version&gt;4.12&lt;/version&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+
+</code></pre>
+<p>这里我们增加了 Thymeleaf 依赖，但不用在 application.properties - 应用配置文件中配置任何配置。默认启动其默认配置，如需修改配置参考 Thymeleaf 依赖配置，如下：</p>
+<pre><code>spring.thymeleaf.cache=true # Enable template caching.
+spring.thymeleaf.check-template=true # Check that the template exists before rendering it.
+spring.thymeleaf.check-template-location=true # Check that the templates location exists.
+spring.thymeleaf.enabled=true # Enable Thymeleaf view resolution for Web frameworks.
+spring.thymeleaf.encoding=UTF-8 # Template files encoding.
+spring.thymeleaf.excluded-view-names= # Comma-separated list of view names that should be excluded from resolution.
+spring.thymeleaf.mode=HTML5 # Template mode to be applied to templates. See also StandardTemplateModeHandlers.
+spring.thymeleaf.prefix=classpath:/templates/ # Prefix that gets prepended to view names when building a URL.
+spring.thymeleaf.reactive.max-chunk-size= # Maximum size of data buffers used for writing to the response, in bytes.
+spring.thymeleaf.reactive.media-types= # Media types supported by the view technology.
+spring.thymeleaf.servlet.content-type=text/html # Content-Type value written to HTTP responses.
+spring.thymeleaf.suffix=.html # Suffix that gets appended to view names when building a URL.
+spring.thymeleaf.template-resolver-order= # Order of the template resolver in the chain.
+spring.thymeleaf.view-names= # Comma-separated list of view names that can be resolved.
+
+</code></pre>
+<p>包括常用的编码、是否开启缓存等等。</p>
+<h3>WebFlux 中使用 Thymeleaf</h3>
+<p>在 CityWebFluxController 控制层，添加两个方法如下：</p>
+<pre><code>    @GetMapping("/hello")
+    public Mono&lt;String&gt; hello(final Model model) {
+        model.addAttribute("name", "泥瓦匠");
+        model.addAttribute("city", "浙江温岭");
+
+        String path = "hello";
+        return Mono.create(monoSink -&gt; monoSink.success(path));
+    }
+
+    private static final String CITY_LIST_PATH_NAME = "cityList";
+
+    @GetMapping("/page/list")
+    public String listPage(final Model model) {
+        final Flux&lt;City&gt; cityFluxList = cityHandler.findAllCity();
+        model.addAttribute("cityList", cityFluxList);
+        return CITY_LIST_PATH_NAME;
+    }
+
+</code></pre>
+<p>解释下语法：</p>
+<ul>
+<li>返回值 Mono 或者 String 都行，但是 Mono 代表着我这个返回 View 也是回调的。</li>
+<li>return 字符串，该字符串对应的目录在 resources/templates 下的模板名字。</li>
+<li>Model 对象来进行数据绑定到视图。</li>
+<li>一般会集中用常量管理模板视图的路径。</li>
+</ul>
+<h3>Tymeleaf 视图</h3>
+<p>然后编写两个视图 hello 和 cityList，代码分别如下。</p>
+<p>hello.html：</p>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"/&gt;
+    &lt;title&gt;欢迎页面&lt;/title&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+
+&lt;h1 &gt;你好，欢迎来自&lt;p th:text="${city}"&gt;&lt;/p&gt;的&lt;p th:text="${name}"&gt;&lt;/p&gt;&lt;/h1&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+
+</code></pre>
+<p>cityList.html：</p>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"/&gt;
+    &lt;title&gt;城市列表&lt;/title&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+
+&lt;div&gt;
+
+    &lt;table&gt;
+        &lt;legend&gt;
+            &lt;strong&gt;城市列表&lt;/strong&gt;
+        &lt;/legend&gt;
+        &lt;thead&gt;
+        &lt;tr&gt;
+            &lt;th&gt;城市编号&lt;/th&gt;
+            &lt;th&gt;省份编号&lt;/th&gt;
+            &lt;th&gt;名称&lt;/th&gt;
+            &lt;th&gt;描述&lt;/th&gt;
+        &lt;/tr&gt;
+        &lt;/thead&gt;
+        &lt;tbody&gt;
+        &lt;tr th:each="city : ${cityList}"&gt;
+            &lt;td th:text="${city.id}"&gt;&lt;/td&gt;
+            &lt;td th:text="${city.provinceId}"&gt;&lt;/td&gt;
+            &lt;td th:text="${city.cityName}"&gt;&lt;/td&gt;
+            &lt;td th:text="${city.description}"&gt;&lt;/td&gt;
+        &lt;/tr&gt;
+        &lt;/tbody&gt;
+    &lt;/table&gt;
+
+&lt;/div&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+
+</code></pre>
+<p>常用语法糖如下：</p>
+<ul>
+<li>${...}：变量表达式；</li>
+<li>th:text：处理 Tymeleaf 表达式；</li>
+<li>th:each：遍历表达式，可遍历的对象有，实现 java.util.Iterable、java.util.Map（遍历时取 java.util.Map.Entry）、array 等。</li>
+</ul>
+<p>还有很多使用，可以参考<a href="http://www.thymeleaf.org/documentation.html">官方文档</a>。</p>
+<h3>运行工程</h3>
+<p>下面运行工程验证下，使用 IDEA 右侧工具栏，点击 Maven Project Tab ，点击使用下 Maven 插件的 install 命令；或者使用命令行的形式，在工程根目录下，执行 Maven 清理和安装工程的指令：</p>
+<pre><code>cd springboot-webflux-4-thymeleaf
+mvn clean install
+
+</code></pre>
+<p>在控制台中看到成功的输出：</p>
+<pre><code>... 省略
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 01:30 min
+[INFO] Finished at: 2017-10-15T10:00:54+08:00
+[INFO] Final Memory: 31M/174M
+[INFO] ------------------------------------------------------------------------
+
+</code></pre>
+<p>在 IDEA 中执行 Application 类启动，任意正常模式或者 Debug 模式，可以在控制台看到成功运行的输出：</p>
+<pre><code>... 省略
+2018-04-10 08:43:39.932  INFO 2052 --- [ctor-http-nio-1] r.ipc.netty.tcp.BlockingNettyContext     : Started HttpServer on /0:0:0:0:0:0:0:0:8080
+2018-04-10 08:43:39.935  INFO 2052 --- [           main] o.s.b.web.embedded.netty.NettyWebServer  : Netty started on port(s): 8080
+2018-04-10 08:43:39.960  INFO 2052 --- [           main] org.spring.springboot.Application        : Started Application in 6.547 seconds (JVM running for 9.851)
+
+</code></pre>
+<p>打开浏览器，访问 http://localhost:8080/city/hello ，可以看到如图的响应：</p>
+<p><img src="assets/9e0580fa073aa29426bda0aab4f41da51524186.png" alt="img"></p>
+<p>继续访问 http://localhost:8080/city/page/list , 发现没有值，那么按照上一讲插入几条数据即可有值，如图：</p>
+<p><img src="assets/66e6502b86c02a83bf56daa93eb9bc1a1524186.png" alt="img"></p>
+<h3>总结</h3>
+<p>这里探讨了 Spring WebFlux 的如何整合 Thymeleaf，整合其他模板语言 Thymeleaf、Freemarker，就大同小异了。下面，我们可以整合 Thymeleaf 和 MongoBD 来实现一个整体的简单案例。</p>
+</div>
+                    </div><div class="book-post">
+
+                        <p id="tip" align="center"></p>
+
+                        <div><h1>06 WebFlux 中 Thymeleaf 和 MongoDB 实践</h1>
+
+<h3>前言</h3>
+
+<p>本节内容主要还是总结上面两篇内容的操作，并实现一个复杂查询的小案例，那么没安装 MongoDB 的可以进行下面的安装流程。</p>
+
+<p>Docker 安装 MognoDB 并启动如下。</p>
+
+<p>（1）创建挂载目录：</p>
+
+<pre><code>docker volume create mongo_data_db
+
+docker volume create mongo_data_configdb
+
+
+
+</code></pre>
+
+<p>（2）启动 MognoDB：</p>
+
+<pre><code>docker run -d \
+
+    --name mongo \
+
+    -v mongo_data_configdb:/data/configdb \
+
+    -v mongo_data_db:/data/db \
+
+    -p 27017:27017 \
+
+    mongo \
+
+    --auth
+
+
+
+</code></pre>
+
+<p>（3）初始化管理员账号：</p>
+
+<pre><code>docker exec -it mongo     mongo              admin
+
+                        // 容器名   // mongo命令 数据库名
+
+
+
+# 创建最高权限用户
+
+db.createUser({ user: 'admin', pwd: 'admin', roles: [ { role: "root", db: "admin" } ] });
+
+
+
+</code></pre>
+
+<p>（4）测试连通性：</p>
+
+<pre><code>docker run -it --rm --link mongo:mongo mongo mongo -u admin -p admin --authenticationDatabase admin mongo/admin
+
+
+
+</code></pre>
+
+<h3>MognoDB 基本操作</h3>
+
+<p>类似 MySQL 命令，显示库列表：</p>
+
+<pre><code>show dbs
+
+
+
+</code></pre>
+
+<p>使用某数据库：</p>
+
+<pre><code>use admin
+
+
+
+</code></pre>
+
+<p>显示表列表：</p>
+
+<pre><code>show collections
+
+
+
+</code></pre>
+
+<p>如果存在 city 表，格式化显示 city 表内容：</p>
+
+<pre><code>db.city.find().pretty()
+
+
+
+</code></pre>
+
+<p>如果已经安装后，只要重启即可。</p>
+
+<p>查看已有的镜像：</p>
+
+<pre><code> docker images
+
+
+
+</code></pre>
+
+<p><img src="assets/bc15410321f52ee046966e3ecad9f8281524711.png" alt="file"></p>
+
+<p>然后 docker start mogno 即可，Mongo 是镜像唯一名词。</p>
+
+<h3>结构</h3>
+
+<p>类似上面讲的工程搭建，新建一个工程编写此案例，工程如图：</p>
+
+<p><img src="assets/cbf51d78c7955bca4fcc32863ac482881524710.png" alt="file"></p>
+
+<p>核心目录如下：</p>
+
+<ul>
+
+<li>pom.xml Maven 依赖配置</li>
+
+<li>application.properties 配置文件，配置 mongo 连接属性配置</li>
+
+<li>dao 数据访问层</li>
+
+<li>controller 展示层实现</li>
+
+</ul>
+
+<h3>新增 POM 依赖与配置</h3>
+
+<p>在 pom.xml 配置新的依赖：</p>
+
+<pre><code>    &lt;!-- Spring Boot 响应式 MongoDB 依赖 --&gt;
+
+    &lt;dependency&gt;
+
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+
+      &lt;artifactId&gt;spring-boot-starter-data-mongodb-reactive&lt;/artifactId&gt;
+
+    &lt;/dependency&gt;
+
+
+
+    &lt;!-- 模板引擎 Thymeleaf 依赖 --&gt;
+
+    &lt;dependency&gt;
+
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+
+      &lt;artifactId&gt;spring-boot-starter-thymeleaf&lt;/artifactId&gt;
+
+    &lt;/dependency&gt;
+
+
+
+</code></pre>
+
+<p>类似配了 MySQL 和 JDBC 驱动，肯定得去配置数据库。在 application.properties 配置中启动 MongoDB 配置。</p>
+
+<p>数据库名为 admin，账号密码也为 admin。</p>
+
+<pre><code>spring.data.mongodb.host=localhost
+
+spring.data.mongodb.database=admin
+
+spring.data.mongodb.port=27017
+
+spring.data.mongodb.username=admin
+
+spring.data.mongodb.password=admin
+
+
+
+</code></pre>
+
+<h3>MongoDB 数据访问层 CityRepository</h3>
+
+<p>修改 CityRepository 类，代码如下：</p>
+
+<pre><code>import org.spring.springboot.domain.City;
+
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+
+import org.springframework.stereotype.Repository;
+
+
+
+@Repository
+
+public interface CityRepository extends ReactiveMongoRepository&lt;City, Long&gt; {
+
+
+
+    Mono&lt;City&gt; findByCityName(String cityName);
+
+
+
+}
+
+
+
+</code></pre>
+
+<p>CityRepository 接口只要继承 ReactiveMongoRepository 类即可。</p>
+
+<p>这里实现了通过城市名找出唯一的城市对象方法：</p>
+
+<pre><code>Mono&lt;City&gt; findByCityName(String cityName);
+
+
+
+</code></pre>
+
+<p>复杂查询语句实现也很简单，只要依照接口实现规范，即可实现对应 MySQL 的 where 查询语句。这里 findByxxx 的 xxx 可以映射任何字段，包括主键等。</p>
+
+<p>接口的命名是遵循规范的，常用命名规则如下：</p>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th align="left">关键字</th>
+
+<th align="left">方法命名</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td align="left">And</td>
+
+<td align="left">findByNameAndPwd</td>
+
+</tr>
+
+<tr>
+
+<td align="left">Or</td>
+
+<td align="left">findByNameOrSex</td>
+
+</tr>
+
+<tr>
+
+<td align="left">Is</td>
+
+<td align="left">findById</td>
+
+</tr>
+
+<tr>
+
+<td align="left">Between</td>
+
+<td align="left">findByIdBetween</td>
+
+</tr>
+
+<tr>
+
+<td align="left">Like</td>
+
+<td align="left">findByNameLike</td>
+
+</tr>
+
+<tr>
+
+<td align="left">NotLike</td>
+
+<td align="left">findByNameNotLike</td>
+
+</tr>
+
+<tr>
+
+<td align="left">OrderBy</td>
+
+<td align="left">findByIdOrderByXDesc</td>
+
+</tr>
+
+<tr>
+
+<td align="left">Not</td>
+
+<td align="left">findByNameNot</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+<h3>处理器类 Handler 和控制器类 Controller</h3>
+
+<p>修改下 Handler，代码如下：</p>
+
+<pre><code>@Component
+
+public class CityHandler {
+
+
+
+    private final CityRepository cityRepository;
+
+
+
+    @Autowired
+
+    public CityHandler(CityRepository cityRepository) {
+
+        this.cityRepository = cityRepository;
+
+    }
+
+
+
+    public Mono&lt;City&gt; save(City city) {
+
+        return cityRepository.save(city);
+
+    }
+
+
+
+    public Mono&lt;City&gt; findCityById(Long id) {
+
+
+
+        return cityRepository.findById(id);
+
+    }
+
+
+
+    public Flux&lt;City&gt; findAllCity() {
+
+
+
+        return cityRepository.findAll();
+
+    }
+
+
+
+    public Mono&lt;City&gt; modifyCity(City city) {
+
+
+
+        return cityRepository.save(city);
+
+    }
+
+
+
+    public Mono&lt;Long&gt; deleteCity(Long id) {
+
+        cityRepository.deleteById(id);
+
+        return Mono.create(cityMonoSink -&gt; cityMonoSink.success(id));
+
+    }
+
+
+
+    public Mono&lt;City&gt; getByCityName(String cityName) {
+
+        return cityRepository.findByCityName(cityName);
+
+    }
+
+}
+
+
+
+</code></pre>
+
+<p>新增对应的方法，直接返回 Mono 对象，不需要对 Mono 进行转换，因为 Mono 本身是个对象，可以被 View 层渲染。继续修改控制器类 Controller，代码如下：</p>
+
+<pre><code>    @Autowired
+
+    private CityHandler cityHandler;
+
+
+
+    @GetMapping(value = "/{id}")
+
+    @ResponseBody
+
+    public Mono&lt;City&gt; findCityById(@PathVariable("id") Long id) {
+
+        return cityHandler.findCityById(id);
+
+    }
+
+
+
+    @GetMapping()
+
+    @ResponseBody
+
+    public Flux&lt;City&gt; findAllCity() {
+
+        return cityHandler.findAllCity();
+
+    }
+
+
+
+    @PostMapping()
+
+    @ResponseBody
+
+    public Mono&lt;City&gt; saveCity(@RequestBody City city) {
+
+        return cityHandler.save(city);
+
+    }
+
+
+
+    @PutMapping()
+
+    @ResponseBody
+
+    public Mono&lt;City&gt; modifyCity(@RequestBody City city) {
+
+        return cityHandler.modifyCity(city);
+
+    }
+
+
+
+    @DeleteMapping(value = "/{id}")
+
+    @ResponseBody
+
+    public Mono&lt;Long&gt; deleteCity(@PathVariable("id") Long id) {
+
+        return cityHandler.deleteCity(id);
+
+    }
+
+
+
+    private static final String CITY_LIST_PATH_NAME = "cityList";
+
+    private static final String CITY_PATH_NAME = "city";
+
+
+
+    @GetMapping("/page/list")
+
+    public String listPage(final Model model) {
+
+        final Flux&lt;City&gt; cityFluxList = cityHandler.findAllCity();
+
+        model.addAttribute("cityList", cityFluxList);
+
+        return CITY_LIST_PATH_NAME;
+
+    }
+
+
+
+    @GetMapping("/getByName")
+
+    public String getByCityName(final Model model,
+
+                                @RequestParam("cityName") String cityName) {
+
+        final Mono&lt;City&gt; city = cityHandler.getByCityName(cityName);
+
+        model.addAttribute("city", city);
+
+        return CITY_PATH_NAME;
+
+    }
+
+
+
+</code></pre>
+
+<p>新增 getByName 路径，指向了新的页面 city。使用 @RequestParam 接收 GET 请求入参，接收的参数为 cityName，城市名称。视图返回值 Mono 或者 String 都行。</p>
+
+<h3>Tymeleaf 视图</h3>
+
+<p>然后编写两个视图 city 和 cityList，代码分别如下。</p>
+
+<p>city.html：</p>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+
+&lt;html lang="zh-CN"&gt;
+
+&lt;head&gt;
+
+    &lt;meta charset="UTF-8"/&gt;
+
+    &lt;title&gt;城市&lt;/title&gt;
+
+&lt;/head&gt;
+
+
+
+&lt;body&gt;
+
+
+
+&lt;div&gt;
+
+
+
+    &lt;table&gt;
+
+        &lt;legend&gt;
+
+            &lt;strong&gt;城市单个查询&lt;/strong&gt;
+
+        &lt;/legend&gt;
+
+        &lt;tbody&gt;
+
+            &lt;td th:text="${city.id}"&gt;&lt;/td&gt;
+
+            &lt;td th:text="${city.provinceId}"&gt;&lt;/td&gt;
+
+            &lt;td th:text="${city.cityName}"&gt;&lt;/td&gt;
+
+            &lt;td th:text="${city.description}"&gt;&lt;/td&gt;
+
+        &lt;/tbody&gt;
+
+    &lt;/table&gt;
+
+
+
+&lt;/div&gt;
+
+
+
+&lt;/body&gt;
+
+&lt;/html&gt;
+
+
+
+</code></pre>
+
+<p>cityList.html：</p>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+
+&lt;html lang="zh-CN"&gt;
+
+&lt;head&gt;
+
+    &lt;meta charset="UTF-8"/&gt;
+
+    &lt;title&gt;城市列表&lt;/title&gt;
+
+&lt;/head&gt;
+
+
+
+&lt;body&gt;
+
+
+
+&lt;div&gt;
+
+
+
+    &lt;table&gt;
+
+        &lt;legend&gt;
+
+            &lt;strong&gt;城市列表&lt;/strong&gt;
+
+        &lt;/legend&gt;
+
+        &lt;thead&gt;
+
+        &lt;tr&gt;
+
+            &lt;th&gt;城市编号&lt;/th&gt;
+
+            &lt;th&gt;省份编号&lt;/th&gt;
+
+            &lt;th&gt;名称&lt;/th&gt;
+
+            &lt;th&gt;描述&lt;/th&gt;
+
+        &lt;/tr&gt;
+
+        &lt;/thead&gt;
+
+        &lt;tbody&gt;
+
+        &lt;tr th:each="city : ${cityList}"&gt;
+
+            &lt;td th:text="${city.id}"&gt;&lt;/td&gt;
+
+            &lt;td th:text="${city.provinceId}"&gt;&lt;/td&gt;
+
+            &lt;td th:text="${city.cityName}"&gt;&lt;/td&gt;
+
+            &lt;td th:text="${city.description}"&gt;&lt;/td&gt;
+
+        &lt;/tr&gt;
+
+        &lt;/tbody&gt;
+
+    &lt;/table&gt;
+
+
+
+&lt;/div&gt;
+
+
+
+&lt;/body&gt;
+
+&lt;/html&gt;
+
+
+
+</code></pre>
+
+<h3>运行工程</h3>
+
+<p>一个 CRUD 的 Spring Boot Webflux 工程就开发完毕了，下面运行工程验证一下。使用 IDEA 右侧工具栏，单击 Maven Project Tab 按钮，然后单击使用下 Maven 插件的 install 命令；或者使用命令行的形式，在工程根目录下，执行 Maven 清理和安装工程的指令：</p>
+
+<pre><code>cd springboot-webflux-5-thymeleaf-mongodb
+
+mvn clean install
+
+
+
+</code></pre>
+
+<p>在控制台中看到成功的输出：</p>
+
+<pre><code>... 省略
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] BUILD SUCCESS
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] Total time: 01:30 min
+
+[INFO] Finished at: 2017-10-15T10:00:54+08:00
+
+[INFO] Final Memory: 31M/174M
+
+[INFO] ------------------------------------------------------------------------
+
+
+
+</code></pre>
+
+<p>在 IDEA 中执行 Application 类启动，任意正常模式或者 Debug 模式。可以在控制台看到成功运行的输出：</p>
+
+<pre><code>... 省略
+
+2018-04-10 08:43:39.932  INFO 2052 --- [ctor-http-nio-1] r.ipc.netty.tcp.BlockingNettyContext     : Started HttpServer on /0:0:0:0:0:0:0:0:8080
+
+2018-04-10 08:43:39.935  INFO 2052 --- [           main] o.s.b.web.embedded.netty.NettyWebServer  : Netty started on port(s): 8080
+
+2018-04-10 08:43:39.960  INFO 2052 --- [           main] org.spring.springboot.Application        : Started Application in 6.547 seconds (JVM running for 9.851)
+
+
+
+</code></pre>
+
+<p>打开 POST MAN 工具，开发必备，进行下面操作。</p>
+
+<p>新增城市信息 POST http://127.0.0.1:8080/city：</p>
+
+<p><img src="assets/f69fa5b09730de686ef4837824da48e71523883-1608971233683.png" alt="file"></p>
+
+<p>打开浏览器，访问 http://localhost:8080/city/getByName?cityName=杭州，可以看到如图的响应：</p>
+
+<p><img src="assets/adfc7fd931e3c7a20f168a6eddc9c1481524710.png" alt="file"></p>
+
+<p>继续访问 http://localhost:8080/city/page/list，发现没有值，那么按照上一篇的内容插入几条数据即可有值，如图：</p>
+
+<p><img src="assets/66e6502b86c02a83bf56daa93eb9bc1a1524186-1608971233702.png" alt="file"></p>
+
+<h3>总结</h3>
+
+<p>这里初步实现了一个简单的整合，具体复杂的案例我们在后面的综合案例中实现，会很酷炫。下面整合 Redis，基于 Redis 可以实现常用的缓存、锁，下一篇我们将学习如何整合 Reids。</p>
+
+</div>
+
+                    </div><div class="book-post">
+
+                        <p id="tip" align="center"></p>
+
+                        <div><h1>07 WebFlux 整合 Redis</h1>
+
+<h3>前言</h3>
+
+<p>上一篇内容讲了如何整合 MongoDB，这里继续讲如何操作 Redis 这个数据源，那什么是 Reids？</p>
+
+<p>Redis 是一个高性能的 key-value 数据库，<a href="https://github.com/antirez/redis">GitHub 地址详见这里</a>。GitHub 是这么描述的：</p>
+
+<p>Redis is an in-memory database that persists on disk. The data model is key-value, but many different kind of values are supported: Strings, Lists, Sets, Sorted Sets, Hashes, HyperLogLogs, Bitmaps.</p>
+
+<p>Redis 是内存式数据库，存储在磁盘，支持的数据类型很多：Strings、Lists、Sets、Sorted Sets、Hashes、HyperLogLogs、Bitmaps 等。</p>
+
+<h4>安装简易教程（适用 Mac/Linux）</h4>
+
+<p>下载并解压：</p>
+
+<pre><code>下载安装包 redis-x.x.x.tar.gz
+
+## 解压
+
+tar zxvf redis-2.8.17.tar.gz
+
+
+
+</code></pre>
+
+<p>编译安装：</p>
+
+<pre><code>cd redis-x.x.x/
+
+make ## 编译
+
+
+
+</code></pre>
+
+<p>启动 Redis：</p>
+
+<pre><code>cd src/
+
+redis-server
+
+
+
+</code></pre>
+
+<p>如果需要运行在守护进程，设置 daemonize 从 no 修改成 yes，并指定运行：redis-server redis.conf。</p>
+
+<p><img src="assets/f9abbce7c1585de46bf88b7a6af427691524817.png" alt="file"></p>
+
+<h3>结构</h3>
+
+<p>类似上面讲的工程搭建，新建一个工程编写此案例，工程如图：</p>
+
+<p><img src="assets/42ed19c43dfc8031b5ab260e6b3446111524816.png" alt="file"></p>
+
+<p>目录核心如下：</p>
+
+<ul>
+
+<li>pom.xml maven 配置</li>
+
+<li>application.properties 配置文件</li>
+
+<li>domain 实体类</li>
+
+<li>controller 控制层，本文要点</li>
+
+</ul>
+
+<h3>新增 POM 依赖与配置</h3>
+
+<p>在 pom.xml 配置新的依赖：</p>
+
+<pre><code>    &lt;!-- Spring Boot 响应式 Redis 依赖 --&gt;
+
+    &lt;dependency&gt;
+
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+
+      &lt;artifactId&gt;spring-boot-starter-data-redis-reactive&lt;/artifactId&gt;
+
+    &lt;/dependency&gt;
+
+
+
+</code></pre>
+
+<p>类似 MongoDB 配置，在 application.properties 配置连接 Redis：</p>
+
+<pre><code>## Redis 配置
+
+## Redis服务器地址
+
+spring.redis.host=127.0.0.1
+
+## Redis服务器连接端口
+
+spring.redis.port=6379
+
+## Redis服务器连接密码（默认为空）
+
+spring.redis.password=
+
+# 连接超时时间（毫秒）
+
+spring.redis.timeout=5000
+
+
+
+</code></pre>
+
+<p>默认 密码为空，这里注意的是连接超时时间不能太少或者为 0，不然会引起异常 RedisCommandTimeoutException: Command timed out。</p>
+
+<h3>对象</h3>
+
+<p>修改 org.spring.springboot.domain 包里面的城市实体对象类，城市（City）对象 City，代码如下：</p>
+
+<pre><code>import org.springframework.data.annotation.Id;
+
+
+
+import java.io.Serializable;
+
+
+
+/**
+
+ * 城市实体类
+
+ *
+
+ */
+
+public class City implements Serializable {
+
+
+
+    private static final long serialVersionUID = -2081742442561524068L;
+
+
+
+    /**
+
+     * 城市编号
+
+     */
+
+    @Id
+
+    private Long id;
+
+
+
+    /**
+
+     * 省份编号
+
+     */
+
+    private Long provinceId;
+
+
+
+    /**
+
+     * 城市名称
+
+     */
+
+    private String cityName;
+
+
+
+    /**
+
+     * 描述
+
+     */
+
+    private String description;
+
+
+
+    public Long getId() {
+
+        return id;
+
+    }
+
+
+
+    public void setId(Long id) {
+
+        this.id = id;
+
+    }
+
+
+
+    public Long getProvinceId() {
+
+        return provinceId;
+
+    }
+
+
+
+    public void setProvinceId(Long provinceId) {
+
+        this.provinceId = provinceId;
+
+    }
+
+
+
+    public String getCityName() {
+
+        return cityName;
+
+    }
+
+
+
+    public void setCityName(String cityName) {
+
+        this.cityName = cityName;
+
+    }
+
+
+
+    public String getDescription() {
+
+        return description;
+
+    }
+
+
+
+    public void setDescription(String description) {
+
+        this.description = description;
+
+    }
+
+}
+
+
+
+</code></pre>
+
+<p>值得注意点：</p>
+
+<ul>
+
+<li>@Id 注解标记对应库表的主键或者唯一标识符。因为这个是我们的 DO，数据访问对象一一映射到数据存储。</li>
+
+<li>City 必须实现序列化，因为需要将对象序列化后存储到 Redis。如果没实现 Serializable，会引出异常：java.lang.IllegalArgumentException: DefaultSerializer requires a Serializable payload but received an object of type。</li>
+
+<li>如果不是用默认的序列化，需要自定义序列化实现，只要实现 RedisSerializer 接口去实现即可，然后在使用 RedisTemplate.setValueSerializer 方法去设置你实现的序列化实现，支持 JSON、XML 等。</li>
+
+</ul>
+
+<h3>控制层 CityWebFluxController</h3>
+
+<p>代码如下：</p>
+
+<pre><code>import org.spring.springboot.domain.City;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.data.redis.core.RedisTemplate;
+
+import org.springframework.data.redis.core.ValueOperations;
+
+import org.springframework.web.bind.annotation.*;
+
+import reactor.core.publisher.Mono;
+
+
+
+import java.util.concurrent.TimeUnit;
+
+
+
+@RestController
+
+@RequestMapping(value = "/city")
+
+public class CityWebFluxController {
+
+
+
+    @Autowired
+
+    private RedisTemplate redisTemplate;
+
+
+
+    @GetMapping(value = "/{id}")
+
+    public Mono&lt;City&gt; findCityById(@PathVariable("id") Long id) {
+
+        String key = "city_" + id;
+
+        ValueOperations&lt;String, City&gt; operations = redisTemplate.opsForValue();
+
+        boolean hasKey = redisTemplate.hasKey(key);
+
+        City city = operations.get(key);
+
+
+
+        if (!hasKey) {
+
+            return Mono.create(monoSink -&gt; monoSink.success(null));
+
+        }
+
+        return Mono.create(monoSink -&gt; monoSink.success(city));
+
+    }
+
+
+
+    @PostMapping()
+
+    public Mono&lt;City&gt; saveCity(@RequestBody City city) {
+
+        String key = "city_" + city.getId();
+
+        ValueOperations&lt;String, City&gt; operations = redisTemplate.opsForValue();
+
+        operations.set(key, city, 60, TimeUnit.SECONDS);
+
+
+
+        return Mono.create(monoSink -&gt; monoSink.success(city));
+
+    }
+
+
+
+    @DeleteMapping(value = "/{id}")
+
+    public Mono&lt;Long&gt; deleteCity(@PathVariable("id") Long id) {
+
+        String key = "city_" + id;
+
+        boolean hasKey = redisTemplate.hasKey(key);
+
+        if (hasKey) {
+
+            redisTemplate.delete(key);
+
+        }
+
+        return Mono.create(monoSink -&gt; monoSink.success(id));
+
+    }
+
+}
+
+
+
+</code></pre>
+
+<p>代码详解：</p>
+
+<ul>
+
+<li>使用 @Autowired 注入 RedisTemplate 对象，这个对象和 Spring 的 JdbcTemplate 功能十分相似，RedisTemplate 封装了 RedisConnection，具有连接管理、序列化和各个操作等，还有针对 String 的支持对象 StringRedisTemplate。</li>
+
+<li>删除 Redis 某对象，直接通过 key 值调用 delete(key)。</li>
+
+<li>Redis 操作视图接口类用的是 ValueOperations，对应的是 Redis String/Value 操作，get 是获取数据；set 是插入数据，可以设置失效时间，这里设置的失效时间是 60 s。</li>
+
+<li>还有其他的操作视图，ListOperations、SetOperations、ZSetOperations 和 HashOperations。</li>
+
+</ul>
+
+<h3>运行工程</h3>
+
+<p>一个操作 Redis 工程就开发完毕了，下面运行工程验证一下，使用 IDEA 右侧工具栏，单击 Maven Project Tab，单击使用下 Maven 插件的 install 命令。或者使用命令行的形式，在工程根目录下，执行 Maven 清理和安装工程的指令：</p>
+
+<pre><code>cd springboot-webflux-6-redis
+
+mvn clean install
+
+
+
+</code></pre>
+
+<p>在控制台中看到成功的输出：</p>
+
+<pre><code>... 省略
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] BUILD SUCCESS
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] Total time: 01:30 min
+
+[INFO] Finished at: 2018-10-15T10:00:54+08:00
+
+[INFO] Final Memory: 31M/174M
+
+[INFO] ------------------------------------------------------------------------
+
+
+
+</code></pre>
+
+<p>在 IDEA 中执行 Application 类启动，任意正常模式或者 Debug 模式，可以在控制台看到成功运行的输出：</p>
+
+<pre><code>... 省略
+
+2018-04-10 08:43:39.932  INFO 2052 --- [ctor-http-nio-1] r.ipc.netty.tcp.BlockingNettyContext     : Started HttpServer on /0:0:0:0:0:0:0:0:8080
+
+2018-04-10 08:43:39.935  INFO 2052 --- [           main] o.s.b.web.embedded.netty.NettyWebServer  : Netty started on port(s): 8080
+
+2018-04-10 08:43:39.960  INFO 2052 --- [           main] org.spring.springboot.Application        : Started Application in 6.547 seconds (JVM running for 9.851)
+
+
+
+</code></pre>
+
+<p>打开 POST MAN 工具，开发必备。进行下面操作：</p>
+
+<h4>新增城市信息 POST http://127.0.0.1:8080/city</h4>
+
+<p><img src="assets/f69fa5b09730de686ef4837824da48e71523883-1608971256856.png" alt="file"></p>
+
+<h4>获取城市信息 GET http://127.0.0.1:8080/city/2</h4>
+
+<p><img src="assets/2e129648b8e574a54ff7940f00f1dc591524819.png" alt="file"></p>
+
+<p>如果等待 60s 以后，再次则会获取为空，因为保存的时候设置了失效时间是 60 s。</p>
+
+<h3>总结</h3>
+
+<p>这里探讨了 Spring WebFlux 的如何整合 Redis，介绍了如何通过 RedisTemplate 去操作 Redis。因为 Redis 在获取资源性能极佳，常用 Redis 作为缓存存储对象，下面我们利用 Reids 实现缓存操作。</p>
+
+</div>
+
+                    </div><div class="book-post">
+                        <p id="tip" align="center"></p>
+                        <div><h1>08 WebFlux 中 Redis 实现缓存</h1>
+<h3>前言</h3>
+<p>首先，补充下上一篇的内容，RedisTemplate 实现操作 Redis，但操作是同步的，不是 Reactive 的。自然，支持 Reactive 的操作类为 ReactiveRedisTemplate，下面我们写个小案例。</p>
+<h3>ReactiveRedisTemplate</h3>
+<p>在上一篇工程中，新建 CityWebFluxReactiveController 类，路由为 /city2 开头。</p>
+<pre><code>@RestController
+@RequestMapping(value = "/city2")
+public class CityWebFluxReactiveController {
+
+    @Autowired
+    private ReactiveRedisTemplate reactiveRedisTemplate;
+
+    @GetMapping(value = "/{id}")
+    public Mono&lt;City&gt; findCityById(@PathVariable("id") Long id) {
+        String key = "city_" + id;
+        ReactiveValueOperations&lt;String, City&gt; operations = reactiveRedisTemplate.opsForValue();
+        Mono&lt;City&gt; city = operations.get(key);
+        return city;
+    }
+
+    @PostMapping
+    public Mono&lt;City&gt; saveCity(@RequestBody City city) {
+        String key = "city_" + city.getId();
+        ReactiveValueOperations&lt;String, City&gt; operations = reactiveRedisTemplate.opsForValue();
+        return operations.getAndSet(key, city);
+    }
+
+    @DeleteMapping(value = "/{id}")
+    public Mono&lt;Long&gt; deleteCity(@PathVariable("id") Long id) {
+        String key = "city_" + id;
+        return reactiveRedisTemplate.delete(key);
+    }
+}
+
+</code></pre>
+<ul>
+<li>写法和以前保持一致，@Autowired 注入 ReactiveRedisTemplate 对象。</li>
+<li>ReactiveValueOperations 是 String（或 value）的操作视图，操作视图还有 ReactiveHashOperations、ReactiveListOperations、ReactiveSetOperations 和 ReactiveZSetOperations 等。</li>
+<li>不一样的是，操作视图 set 方法是操作 City 对象，但可以 get 回 Mono 或者 Flux 对象。</li>
+</ul>
+<h3>结构</h3>
+<p>回到这个工程，新建一个工程编写整合 Redis 实现缓存案例，工程如图：</p>
+<p><img src="assets/3b4f95fda4771ca70c5bbc644f82a0c01525318.png" alt="file"></p>
+<p>目录核心如下：</p>
+<ul>
+<li>pom.xml maven 配置</li>
+<li>application.properties 配置文件</li>
+<li>domain 实体类</li>
+<li>dao mongodb数据操作层</li>
+<li>handler 业务层，本文要点</li>
+<li>controller 控制层</li>
+</ul>
+<p><a href="https://github.com/JeffLi1993/springboot-learning-example">单击这里查看源代码</a>。</p>
+<h3>控制层 CityWebFluxController</h3>
+<p>代码如下：</p>
+<pre><code>@RestController
+@RequestMapping(value = "/city")
+public class CityWebFluxController {
+
+    @Autowired
+    private CityHandler cityHandler;
+
+    @GetMapping(value = "/{id}")
+    public Mono&lt;City&gt; findCityById(@PathVariable("id") Long id) {
+        return cityHandler.findCityById(id);
+    }
+
+    @GetMapping()
+    public Flux&lt;City&gt; findAllCity() {
+        return cityHandler.findAllCity();
+    }
+
+    @PostMapping()
+    public Mono&lt;City&gt; saveCity(@RequestBody City city) {
+        return cityHandler.save(city);
+    }
+
+    @PutMapping()
+    public Mono&lt;City&gt; modifyCity(@RequestBody City city) {
+        return cityHandler.modifyCity(city);
+    }
+
+    @DeleteMapping(value = "/{id}")
+    public Mono&lt;Long&gt; deleteCity(@PathVariable("id") Long id) {
+        return cityHandler.deleteCity(id);
+    }
+}
+
+</code></pre>
+<h3>CityHandler 业务层</h3>
+<p>目前，@Cacheable 等注解形式实现缓存没有很好的集成，二者 Mono / Flux 对象没有实现 Serializable，无法通过默认序列化器，解决方式是需要自定义序列化，这里通过手动方式与 Redis 手动集成，并实现缓存策略。</p>
+<p><a href="http://coolshell.cn/articles/17416.html">参考《缓存更新的套路》</a>，缓存更新的模式有四种：Cache aside、Read through、Write through、Write behind caching。</p>
+<p>这里使用的是 Cache Aside 策略，从三个维度（摘自耗子叔叔博客）：</p>
+<ul>
+<li>失效：应用程序先从 Cache 取数据，没有得到，则从数据库中取数据，成功后，放到缓存中。</li>
+<li>命中：应用程序从 Cache 中取数据，取到后返回。</li>
+<li>更新：先把数据存到数据库中，成功后，再让缓存失效。</li>
+</ul>
+<p>代码如下：</p>
+<pre><code>@Component
+public class CityHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CityHandler.class);
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    private final CityRepository cityRepository;
+
+    @Autowired
+    public CityHandler(CityRepository cityRepository) {
+        this.cityRepository = cityRepository;
+    }
+
+    public Mono&lt;City&gt; save(City city) {
+        return cityRepository.save(city);
+    }
+
+    public Mono&lt;City&gt; findCityById(Long id) {
+
+        // 从缓存中获取城市信息
+        String key = "city_" + id;
+        ValueOperations&lt;String, City&gt; operations = redisTemplate.opsForValue();
+
+        // 缓存存在
+        boolean hasKey = redisTemplate.hasKey(key);
+        if (hasKey) {
+            City city = operations.get(key);
+
+            LOGGER.info("CityHandler.findCityById() : 从缓存中获取了城市 &gt;&gt; " + city.toString());
+            return Mono.create(cityMonoSink -&gt; cityMonoSink.success(city));
+        }
+
+        // 从 MongoDB 中获取城市信息
+        Mono&lt;City&gt; cityMono = cityRepository.findById(id);
+
+        if (cityMono == null)
+            return cityMono;
+
+        // 插入缓存
+        cityMono.subscribe(cityObj -&gt; {
+            operations.set(key, cityObj);
+            LOGGER.info("CityHandler.findCityById() : 城市插入缓存 &gt;&gt; " + cityObj.toString());
+        });
+
+        return cityMono;
+    }
+
+    public Flux&lt;City&gt; findAllCity() {
+        return cityRepository.findAll().cache();
+    }
+
+    public Mono&lt;City&gt; modifyCity(City city) {
+
+        Mono&lt;City&gt; cityMono = cityRepository.save(city);
+
+        // 缓存存在，删除缓存
+        String key = "city_" + city.getId();
+        boolean hasKey = redisTemplate.hasKey(key);
+        if (hasKey) {
+            redisTemplate.delete(key);
+
+            LOGGER.info("CityHandler.modifyCity() : 从缓存中删除城市 ID &gt;&gt; " + city.getId());
+        }
+
+        return cityMono;
+    }
+
+    public Mono&lt;Long&gt; deleteCity(Long id) {
+
+        cityRepository.deleteById(id);
+
+        // 缓存存在，删除缓存
+        String key = "city_" + id;
+        boolean hasKey = redisTemplate.hasKey(key);
+        if (hasKey) {
+            redisTemplate.delete(key);
+
+            LOGGER.info("CityHandler.deleteCity() : 从缓存中删除城市 ID &gt;&gt; " + id);
+        }
+
+        return Mono.create(cityMonoSink -&gt; cityMonoSink.success(id));
+    }
+}
+
+</code></pre>
+<p>首先这里注入了 RedisTemplate 对象，联想到 Spring 的 JdbcTemplate ，RedisTemplate 封装了 RedisConnection，具有连接管理，序列化和 Redis 操作等功能，还有针对 String 的支持对象 StringRedisTemplate。</p>
+<p>回到更新缓存的逻辑。</p>
+<p>a. findCityById 获取城市逻辑：</p>
+<ul>
+<li>如果缓存存在，从缓存中获取城市信息；</li>
+<li>如果缓存不存在，从 DB 中获取城市信息，然后插入缓存。</li>
+</ul>
+<p>b. deleteCity 删除 / modifyCity 更新城市逻辑：</p>
+<ul>
+<li>如果缓存存在，删除；</li>
+<li>如果缓存不存在，不操作。</li>
+</ul>
+<h3>运行工程</h3>
+<p>一个操作 Redis 工程就开发完毕了，下面运行工程验证下。使用 IDEA 右侧工具栏，点击 Maven Project Tab，点击使用下 Maven 插件的 install 命令；或者使用命令行的形式，在工程根目录下，执行 Maven 清理和安装工程的指令：</p>
+<pre><code>cd springboot-webflux-7-redis-cache
+mvn clean install
+
+</code></pre>
+<p>在控制台中看到成功的输出：</p>
+<pre><code>... 省略
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 01:30 min
+[INFO] Finished at: 2018-10-15T10:00:54+08:00
+[INFO] Final Memory: 31M/174M
+[INFO] ------------------------------------------------------------------------
+
+</code></pre>
+<p>在 IDEA 中执行 Application 类启动，任意正常模式或者 Debug 模式，可以在控制台看到成功运行的输出：</p>
+<pre><code>... 省略
+2018-04-10 08:43:39.932  INFO 2052 --- [ctor-http-nio-1] r.ipc.netty.tcp.BlockingNettyContext     : Started HttpServer on /0:0:0:0:0:0:0:0:8080
+2018-04-10 08:43:39.935  INFO 2052 --- [           main] o.s.b.web.embedded.netty.NettyWebServer  : Netty started on port(s): 8080
+2018-04-10 08:43:39.960  INFO 2052 --- [           main] org.spring.springboot.Application        : Started Application in 6.547 seconds (JVM running for 9.851)
+
+</code></pre>
+<p>打开 POST MAN 工具，开发必备。进行下面操作：</p>
+<p><strong>新增城市信息 POST http://127.0.0.1:8080/city</strong></p>
+<p><img src="assets/f69fa5b09730de686ef4837824da48e71523883-1608971278890.png" alt="file"></p>
+<p><strong>获取城市信息 GET http://127.0.0.1:8080/city/2</strong></p>
+<p><img src="assets/2e129648b8e574a54ff7940f00f1dc591524819-1608971278898.png" alt="file"></p>
+<p>再请求一次，获取城市信息会发现数据获取的耗时快了很多，服务端 Console 输出的日志：</p>
+<pre><code>2017-04-13 18:29:00.273  INFO 13038 --- [nio-8080-exec-1] findCityById() : 城市插入缓存 &gt;&gt; City{id=12, provinceId=3, cityName='三亚', description='水好,天蓝'}
+2017-04-13 18:29:03.145  INFO 13038 --- [nio-8080-exec-2] findCityById() : 从缓存中获取了城市 &gt;&gt; City{id=12, provinceId=3, cityName='三亚', description='水好,天蓝'}
+
+</code></pre>
+<p>可见，第一次是从数据库 MongoDB 获取数据，并插入缓存，第二次直接从缓存中取。</p>
+<p>更新 / 删除城市信息，这两种操作中，如果缓存有对应的数据，则删除缓存。服务端 Console 输出的日志：</p>
+<pre><code>2017-04-13 18:29:52.248  INFO 13038 --- [nio-8080-exec-9] deleteCity() : 从缓存中删除城市 ID &gt;&gt; 12
+
+</code></pre>
+<h3>总结</h3>
+<p>这一讲，主要补充了 Redis 对响应式的支持操作，以及缓存更新策略及实际应用小例子。</p>
+</div>
+                    </div><div class="book-post">
+
+                        <p id="tip" align="center"></p>
+
+                        <div><h1>09 WebFlux 中 WebSocket 实现通信</h1>
+
+<h3>前言</h3>
+
+<p>WebFlux 该模块中包含了对反应式 HTTP、服务器推送事件和 WebSocket 的客户端和服务器端的支持。这里我们简单实践下 WebFlux 中 WebSocket 实现通信。</p>
+
+<h3>什么是 WebSocket</h3>
+
+<p>WebSocket 是一种通信协议，类比下 HTTP 协议，HTTP 协议只能有客户端发起请求，然后得到响应。 一般通过 HTTP 的轮询方式，实现 WebSocket 类似功能。</p>
+
+<p>因为轮询，每次新建连接，请求响应，浪费资源。WebSocket 就出现了，它支持客户端和服务端双向通讯。类似 http 和 https，WebSocket 的标识符为 ws 和 wss，案例地址为：</p>
+
+<pre><code>ws://localhost:8080/echo
+
+
+
+</code></pre>
+
+<h3>结构</h3>
+
+<p>回到这个工程，新建一个工程编写 WebSocket 实现通信案例。工程如图：</p>
+
+<p><img src="assets/38520c5f22d961494869d108b3c044711525329.png" alt="file"></p>
+
+<p>目录核心如下：</p>
+
+<ul>
+
+<li>EchoHandler websocket 处理类（类似 HTTP Servlet 处理）</li>
+
+<li>WebSocketConfiguration websocket 配置类</li>
+
+<li>websocket-client.html HTML 客户端实现</li>
+
+<li>WSClient java 客户端实现</li>
+
+</ul>
+
+<p><a href="https://github.com/JeffLi1993/springboot-learning-example">单击这里查看源代码</a>。</p>
+
+<h3>EchoHandler 处理类</h3>
+
+<p>代码如下：</p>
+
+<pre><code>import org.springframework.stereotype.Component;
+
+import org.springframework.web.reactive.socket.WebSocketHandler;
+
+import org.springframework.web.reactive.socket.WebSocketSession;
+
+import reactor.core.publisher.Mono;
+
+
+
+@Component
+
+public class EchoHandler implements WebSocketHandler {
+
+    @Override
+
+    public Mono&lt;Void&gt; handle(final WebSocketSession session) {
+
+        return session.send(
+
+                session.receive()
+
+                        .map(msg -&gt; session.textMessage(
+
+                                "服务端返回：小明， -&gt; " + msg.getPayloadAsText())));
+
+    }
+
+}
+
+
+
+</code></pre>
+
+<p>代码详解：</p>
+
+<ul>
+
+<li>WebSocketHandler 接口，实现该接口来处理 WebSokcet 消息。</li>
+
+<li>handle(WebSocketSession session) 方法，接收 WebSocketSession 对象，即获取客户端信息、发送消息和接收消息的操作对象。</li>
+
+<li>receive() 方法，接收消息，使用 map 操作获取的 Flux 中包含的消息持续处理，并拼接出返回消息 Flux 对象。</li>
+
+<li>send() 方法，发送消息。消息为“服务端返回：小明， -&gt; ”开头的。</li>
+
+</ul>
+
+<h3>WebSocketConfiguration 配置类</h3>
+
+<p>代码如下：</p>
+
+<pre><code>@Configuration
+
+public class WebSocketConfiguration {
+
+
+
+    @Autowired
+
+    @Bean
+
+    public HandlerMapping webSocketMapping(final EchoHandler echoHandler) {
+
+        final Map&lt;String, WebSocketHandler&gt; map = new HashMap&lt;&gt;();
+
+        map.put("/echo", echoHandler);
+
+
+
+        final SimpleUrlHandlerMapping mapping = new SimpleUrlHandlerMapping();
+
+        mapping.setOrder(Ordered.HIGHEST_PRECEDENCE);
+
+        mapping.setUrlMap(map);
+
+        return mapping;
+
+    }
+
+
+
+    @Bean
+
+    public WebSocketHandlerAdapter handlerAdapter() {
+
+        return new WebSocketHandlerAdapter();
+
+    }
+
+}
+
+
+
+</code></pre>
+
+<p>代码详解：</p>
+
+<ul>
+
+<li>WebSocketHandlerAdapter 负责将 EchoHandler 处理类适配到 WebFlux 容器中；</li>
+
+<li>SimpleUrlHandlerMapping 指定了 WebSocket 的路由配置；</li>
+
+<li>使用 map 指定 WebSocket 协议的路由，路由为 ws://localhost:8080/echo。</li>
+
+</ul>
+
+<h3>运行工程</h3>
+
+<p>一个操作 Redis 工程就开发完毕了，下面运行工程验证下。使用 IDEA 右侧工具栏，点击 Maven Project Tab，点击使用下 Maven 插件的 install 命令。或者使用命令行的形式，在工程根目录下，执行 Maven 清理和安装工程的指令：</p>
+
+<pre><code>cd springboot-webflux-8-websocket
+
+mvn clean install
+
+
+
+</code></pre>
+
+<p>在控制台中看到成功的输出：</p>
+
+<pre><code>... 省略
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] BUILD SUCCESS
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] Total time: 01:30 min
+
+[INFO] Finished at: 2018-10-15T10:00:54+08:00
+
+[INFO] Final Memory: 31M/174M
+
+[INFO] ------------------------------------------------------------------------
+
+
+
+</code></pre>
+
+<p>在 IDEA 中执行 Application 类启动，任意正常模式或者 Debug 模式，可以在控制台看到成功运行的输出：</p>
+
+<pre><code>... 省略
+
+2018-04-10 08:43:39.932  INFO 2052 --- [ctor-http-nio-1] r.ipc.netty.tcp.BlockingNettyContext     : Started HttpServer on /0:0:0:0:0:0:0:0:8080
+
+2018-04-10 08:43:39.935  INFO 2052 --- [           main] o.s.b.web.embedded.netty.NettyWebServer  : Netty started on port(s): 8080
+
+2018-04-10 08:43:39.960  INFO 2052 --- [           main] org.spring.springboot.Application        : Started Application in 6.547 seconds (JVM running for 9.851)
+
+
+
+</code></pre>
+
+<p>打开 <a href="https://www.websocket.org/echo.html">https://www.websocket.org/echo.html</a>网页，大多数浏览器是支持 WebSokcet 协议的。</p>
+
+<p>Location - 输入通信地址、点击 Conect 会出现 CONNECTED。</p>
+
+<p>然后发送消息，可以看到服务端返回对应的消息。如果此时关闭了服务端，那么会出现 DISCONNECTED：</p>
+
+<p><img src="assets/39b8cd4ff4872ca11fd091744c83e5171525330.png" alt="file"></p>
+
+<h3>websocket-client.html HTML 客户端实现</h3>
+
+<p>实现 HTML 客户端：</p>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+
+&lt;html lang="en"&gt;
+
+&lt;head&gt;
+
+  &lt;meta charset="UTF-8"&gt;
+
+  &lt;title&gt;Client WebSocket&lt;/title&gt;
+
+&lt;/head&gt;
+
+&lt;body&gt;
+
+
+
+&lt;div class="chat"&gt;&lt;/div&gt;
+
+
+
+&lt;script&gt;
+
+  var clientWebSocket = new WebSocket("ws://localhost:8080/echo");
+
+
+
+  clientWebSocket.onopen = function () {
+
+    console.log("clientWebSocket.onopen", clientWebSocket);
+
+    console.log("clientWebSocket.readyState", "websocketstatus");
+
+    clientWebSocket.send("你好！");
+
+  }
+
+
+
+  clientWebSocket.onclose = function (error) {
+
+    console.log("clientWebSocket.onclose", clientWebSocket, error);
+
+    events("聊天会话关闭！");
+
+  }
+
+
+
+  function events(responseEvent) {
+
+    document.querySelector(".chat").innerHTML += responseEvent + "&lt;br&gt;";
+
+  }
+
+&lt;/script&gt;
+
+&lt;/body&gt;
+
+&lt;/html&gt;
+
+
+
+</code></pre>
+
+<p>大多数浏览器是支持 WebSocket，代码详解如下：</p>
+
+<ul>
+
+<li>网页打开是，会调用 onopen 方法，并发送消息给服务端“你好！”；</li>
+
+<li>如果服务端关闭，会调用 onclose 方法，页面会出现“聊天会话关闭！”信息。</li>
+
+</ul>
+
+<h3>WSClient Java 客户端实现</h3>
+
+<p>类似，HTTPClient 调用 HTTP，WebSocket 客户端去调用 WebSokcet 协议，并实现服务。代码如下：</p>
+
+<pre><code>public class WSClient {
+
+    public static void main(final String[] args) {
+
+        final WebSocketClient client = new ReactorNettyWebSocketClient();
+
+        client.execute(URI.create("ws://localhost:8080/echo"), session -&gt;
+
+                session.send(Flux.just(session.textMessage("你好")))
+
+                        .thenMany(session.receive().take(1).map(WebSocketMessage::getPayloadAsText))
+
+                        .doOnNext(System.out::println)
+
+                        .then())
+
+                .block(Duration.ofMillis(5000));
+
+    }
+
+}
+
+
+
+</code></pre>
+
+<p>代码详解：</p>
+
+<ul>
+
+<li>ReactorNettyWebSocketClient 是 WebFlux 默认 Reactor Netty 库提供的 WebSocketClient 实现。</li>
+
+<li>execute 方法，与 ws://localhost:8080/echo 建立 WebSokcet 协议连接。</li>
+
+<li>execute 需要传入 WebSocketHandler 的对象，用来处理消息，这里的实现和前面的 EchoHandler 类似。</li>
+
+<li>通过 WebSocketSession 的 send 方法来发送字符串“你好”到服务器端，然后通过 receive 方法来等待服务器端的响应并输出。</li>
+
+</ul>
+
+<h3>总结</h3>
+
+<p>这一篇内容主要一起实践了简单的 WebSocket 的应用操作，以及 WebSocket 客户端小例子。</p>
+
+<p>工程：springboot-webflux-8-websocket</p>
+
+</div>
+
+                    </div><div class="book-post">
+
+                        <p id="tip" align="center"></p>
+
+                        <div><h1>10 WebFlux 集成测试及部署</h1>
+
+<h3>前言</h3>
+
+<p>在日常工作中，免不了自测 UT，因为覆盖率不达标，是不允许提交测试，那怎么进行 WebFlux 项目的测试呢。@WebFluxTest 是 WebFlux 测试的重要注解。</p>
+
+<h3>结构</h3>
+
+<p>回到这个工程中，使用 springboot-webflux-3-mongodb 工程，工程如图：</p>
+
+<p><img src="assets/015e1df4d8af293c1ee69c79446b00271525498.png" alt="img"></p>
+
+<p>目录核心如下：</p>
+
+<ul>
+
+<li>pom.xml 添加 Test 相关依赖；</li>
+
+<li>test / CityWebFluxControllerTest WebFlux API 测试类；</li>
+
+</ul>
+
+<p><a href="https://github.com/JeffLi1993/springboot-learning-example">代码 GiHub 详见这里</a>。</p>
+
+<h3>POM 依赖</h3>
+
+<p>pom.xml 添加对应的测试依赖：</p>
+
+<pre><code>    &lt;!-- Spring Boot Test 依赖 --&gt;
+
+    &lt;dependency&gt;
+
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+
+      &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+
+      &lt;scope&gt;test&lt;/scope&gt;
+
+    &lt;/dependency&gt;
+
+
+
+    &lt;dependency&gt;
+
+      &lt;groupId&gt;io.projectreactor&lt;/groupId&gt;
+
+      &lt;artifactId&gt;reactor-test&lt;/artifactId&gt;
+
+      &lt;scope&gt;test&lt;/scope&gt;
+
+    &lt;/dependency&gt;
+
+
+
+</code></pre>
+
+<h3>CityWebFluxControllerTest WebFlux API 测试类</h3>
+
+<p>@WebFluxTest 用于测试 Spring WebFlux 控制器，支持自动配置 Spring WebFlux 基础组件，可以限制扫描范围等。</p>
+
+<p>代码如下：</p>
+
+<pre><code>@RunWith(SpringRunner.class)
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+
+public class CityWebFluxControllerTest {
+
+
+
+    @Autowired
+
+    private WebTestClient webClient;
+
+
+
+    private static Map&lt;String, City&gt; cityMap = new HashMap&lt;&gt;();
+
+
+
+    @BeforeClass
+
+    public static void setup() throws Exception {
+
+        City wl = new City();
+
+        wl.setId(1L);
+
+        wl.setProvinceId(2L);
+
+        wl.setCityName("WL");
+
+        wl.setDescription("WL IS GOOD");
+
+        cityMap.put("WL", wl);
+
+    }
+
+
+
+    @Test
+
+    public void testSave() throws Exception {
+
+
+
+        City expectCity = webClient.post().uri("/city")
+
+                .contentType(MediaType.APPLICATION_JSON)
+
+                .body(BodyInserters.fromObject(cityMap.get("WL")))
+
+                .exchange()
+
+                .expectStatus().isOk()
+
+                .expectBody(City.class).returnResult().getResponseBody();
+
+
+
+        Assert.assertNotNull(expectCity);
+
+        Assert.assertEquals(expectCity.getId(), cityMap.get("WL").getId());
+
+        Assert.assertEquals(expectCity.getCityName(), cityMap.get("WL").getCityName());
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+<p>代码详解：</p>
+
+<ul>
+
+<li>@WebFluxTest 注入了 WebTestClient 对象，用于测试 WebFlux 控制器，好处是快速，并无需启动完整 HTTP 容器。</li>
+
+<li>WebTestClient.post() 方法构造了 POST 测试请求，并使用 uri 指定路由。</li>
+
+<li>expectStatus() 用于验证返回状态是否为 ok()，即 200 返回码。</li>
+
+<li>expectBody(City.class) 用于验证返回对象体是为 City 对象，并利用 returnResult 获取对象。</li>
+
+<li>Assert 是以前我们常用的断言方法验证测试结果。</li>
+
+</ul>
+
+<p>运行 Test，得到如图验证结果：</p>
+
+<p><img src="assets/da3ec656da4450f7042ecd20238735401525498.png" alt="file"></p>
+
+<h3>工程运行方式</h3>
+
+<p>了解工程服务器部署，先了解工程如何运行。</p>
+
+<p>上面使用应用启动类运行工程，这是其中一种工程运行方式。Spring Boot 应用的运行方式很简单，下面介绍下这三种运行方式。</p>
+
+<h4>1. 使用应用启动类</h4>
+
+<p>在 IDEA 中直接执行应用启动类，来运行 Spring Boot 应用，日常开发中，会经常使用这种方式启动应用。常用的会有 Debug 启动模式，方便在开发中进行代码调试和 bug 处理。自然，Debug 启动模式会比正常模式稍微慢一些。</p>
+
+<h4>2. 使用 Maven 运行</h4>
+
+<p>通过 Maven 运行，需要配置 Spring Boot Maven 插件，在 pom.xml 配置文件中，新增 build 节点并配置插件 spring-boot-maven-plugin，代码如下：</p>
+
+<pre><code>&lt;build&gt;
+
+    &lt;plugins&gt;
+
+        &lt;!-- Spring Boot Maven 插件 --&gt;
+
+        &lt;plugin&gt;
+
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+
+            &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+
+        &lt;/plugin&gt;
+
+    &lt;/plugins&gt;
+
+&lt;/build&gt;
+
+
+
+</code></pre>
+
+<p>在工程根目录中，运行如下 Maven 命令来运行 Spring Boot 应用：</p>
+
+<pre><code>mvn spring-boot:run
+
+
+
+</code></pre>
+
+<p>实际调用的是 pom.xml 配置的 Spring Boot Maven 插件 spring-boot-maven-plugin，上面执行了插件提供的 run 指令。也可以在 IDEA 右侧工具栏的 Maven Project Tab 中，找到 Maven 插件的 spring-boot-maven-plugin，执行相应的指令。所有指令如下：</p>
+
+<pre><code># 生成构建信息文件
+
+spring-boot:build-info
+
+# 帮助信息
+
+spring-boot:help
+
+# 重新打包
+
+spring-boot:repackage
+
+# 运行工程
+
+spring-boot:run
+
+# 将工程集成到集成测试阶段，进行工程的声明周期管理
+
+spring-boot:start
+
+spring-boot:stop
+
+
+
+</code></pre>
+
+<h4>3. 使用 Java 命令运行</h4>
+
+<p>使用 Maven 或者 Gradle 安装工程，生成可执行的工程 jar 后，运行如下 Java 命令来运行 Spring Boot 应用：</p>
+
+<pre><code>java -jar target/xxx.jar 
+
+
+
+</code></pre>
+
+<p>这里运行了 spring-boot-maven-plugin 插件编译出来的可执行 jar 文件。通过上述三种方式都可以成功运行 Spring Boot 工程，成功运行输出的控制台信息如图 1-10 所示。</p>
+
+<p><img src="assets/0f234db300ec389786b1a7e55b7bb5ec1515130.png" alt="img"></p>
+
+<h3>工程服务器部署</h3>
+
+<p>基础环境安装如上面说的，需要 JDK 环境、Maven 环境等。</p>
+
+<h4>Win 服务器</h4>
+
+<p>推荐使用 AlwaysUp：</p>
+
+<p><img src="assets/91b7d3d4b629f5b7475b7b0d92f3db491516073.png" alt="img"></p>
+
+<p>使用方式也很简单：</p>
+
+<p><img src="assets/24b98badfdad8d24bd5a1c46c3e012fd1516073.png" alt="img"></p>
+
+<h4>Linux 服务器</h4>
+
+<p>推荐 yum 安装基础环境，比如安装 JDK：</p>
+
+<pre><code>yum -y list java*
+
+yum -y install java-1.8.0-openjdk*
+
+java -version 
+
+
+
+</code></pre>
+
+<p>安装 Maven：</p>
+
+<pre><code>yum -y list apache-maven
+
+sudo wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo
+
+sudo yum install -y apache-maven
+
+mvn --v
+
+
+
+</code></pre>
+
+<p>Linux 使用 nohup 命令进行对后台程序的启动关闭。</p>
+
+<p>关闭应用的脚本：stop.sh</p>
+
+<p><img src="assets/87aed0bf416fc6ed134bf324f744558b1516073.png" alt="img"></p>
+
+<p>启动应用的脚本：start.sh</p>
+
+<p><img src="assets/c1b800203d816380d24b03c9b4f72a311516073.png" alt="img"></p>
+
+<p>重启应用的脚本：stop.sh</p>
+
+<p><img src="assets/712242d8401da8fa9b9842628890ed2a1516073.png" alt="img"></p>
+
+<h3>总结</h3>
+
+<p>这一篇主要一起实践了简单的 WebFlux API 控制层的测试，Service 测试 Mock 和以前一样，以及工程运行、服务器部署的操作。</p>
+
+<p>工程：springboot-webflux-9-test。</p>
+
+</div>
+
+                    </div><div class="book-post">
+
+                        <p id="tip" align="center"></p>
+
+                        <div><h1>11 WebFlux 实战图书管理系统</h1>
+
+<h3>前言</h3>
+
+<p>本篇内容我们会实现如下图所示的城市管理系统，因为上面案例都用的是 City，所以这里直接使用城市作为对象，写一个简单的城市管理系统，如图所示：</p>
+
+<p><img src="assets/99e91edf11b6ff64025c7a74c4a1db561525504.png" alt="file"></p>
+
+<h3>结构</h3>
+
+<p>类似上面讲的工程搭建，新建一个工程编写此案例。工程如图：</p>
+
+<p><img src="assets/1a05190038e9565a3ffa1b876a63f4701525504.png" alt="img"></p>
+
+<p>下面目录和上面类似，这边不重复讲解：</p>
+
+<ul>
+
+<li>pom.xml Maven 依赖配置</li>
+
+<li>application.properties 配置文件，配置 mongo 连接属性配置</li>
+
+<li>dao 数据访问层</li>
+
+</ul>
+
+<p><a href="https://github.com/JeffLi1993/springboot-learning-example">单击这里查看源代码</a>。</p>
+
+<p>本文主要介绍：</p>
+
+<ul>
+
+<li>controller 控制层实现</li>
+
+<li>static 存放 css 图片静态资源</li>
+
+<li>templates 编写页面逻辑</li>
+
+</ul>
+
+<h3>CityController 控制层</h3>
+
+<p>使用注解驱动的模式来进行开发，代码如下：</p>
+
+<pre><code>/**
+
+ * city 控制层
+
+ * &lt;p&gt;
+
+ * Created by bysocket
+
+ */
+
+@Controller
+
+@RequestMapping(value = "/city")
+
+public class CityController {
+
+
+
+    private static final String CITY_FORM_PATH_NAME = "cityForm";
+
+    private static final String CITY_LIST_PATH_NAME = "cityList";
+
+    private static final String REDIRECT_TO_CITY_URL = "redirect:/city";
+
+
+
+    @Autowired
+
+    CityService cityService;
+
+
+
+    @RequestMapping(method = RequestMethod.GET)
+
+    public String getCityList(final Model model) {
+
+        model.addAttribute("cityList", cityService.findAll());
+
+        return CITY_LIST_PATH_NAME;
+
+    }
+
+
+
+    @RequestMapping(value = "/create", method = RequestMethod.GET)
+
+    public String createCityForm(final Model model) {
+
+        model.addAttribute("city", new City());
+
+        model.addAttribute("action", "create");
+
+        return CITY_FORM_PATH_NAME;
+
+    }
+
+
+
+    @RequestMapping(value = "/create", method = RequestMethod.POST)
+
+    public String postCity(@ModelAttribute City city) {
+
+        cityService.insertByCity(city);
+
+        return REDIRECT_TO_CITY_URL;
+
+    }
+
+
+
+    @RequestMapping(value = "/update/{id}", method = RequestMethod.GET)
+
+    public String getCity(@PathVariable Long id, final Model model) {
+
+        final Mono&lt;City&gt; city = cityService.findById(id);
+
+        model.addAttribute("city", city);
+
+        model.addAttribute("action", "update");
+
+        return CITY_FORM_PATH_NAME;
+
+    }
+
+
+
+    @RequestMapping(value = "/update", method = RequestMethod.POST)
+
+    public String putBook(@ModelAttribute City city) {
+
+        cityService.update(city);
+
+        return REDIRECT_TO_CITY_URL;
+
+    }
+
+
+
+    @RequestMapping(value = "/delete/{id}", method = RequestMethod.GET)
+
+    public String deleteCity(@PathVariable Long id) {
+
+        cityService.delete(id);
+
+        return CITY_LIST_PATH_NAME;
+
+    }
+
+
+
+}
+
+
+
+</code></pre>
+
+<p>可以创建不同功能的控制层，来处理不同的 HTTP 业务请求，比如 CityFrontController、CityAdminController 等分别处理不同场景的问题。</p>
+
+<ul>
+
+<li>getCityList 方法：处理“/city”的 GET 请求，用来获取 City 列表。</li>
+
+<li>getCity 方法：处理“/city/update/{id}”的 GET 请求，用来获取 City 信息。</li>
+
+<li>postCity 方法：处理“/book/create”的 POST 请求，用来新建 Book 信息；通过 @ModelAttribut 绑定实体参数，也通过 @RequestBody @RequestParam 传递参数。</li>
+
+<li>putCity 方法：处理“/update”的 PUT 请求，用来更新 City 信息，并使用 redirect 重定向到列表页面。</li>
+
+</ul>
+
+<h3>cityForm 提交表单页面</h3>
+
+<p>表单页面如下：</p>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+
+&lt;html lang="zh-CN"&gt;
+
+&lt;head&gt;
+
+  &lt;script type="text/javascript" th:src="@{https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js}"&gt;&lt;/script&gt;
+
+  &lt;link th:href="@{https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css}" rel="stylesheet"/&gt;
+
+  &lt;link th:href="@{/css/default.css}" rel="stylesheet"/&gt;
+
+  &lt;link rel="icon" th:href="@{/images/favicon.ico}" type="image/x-icon"/&gt;
+
+  &lt;meta charset="UTF-8"/&gt;
+
+  &lt;title&gt;城市管理&lt;/title&gt;
+
+&lt;/head&gt;
+
+
+
+&lt;body&gt;
+
+&lt;div class="contentDiv"&gt;
+
+
+
+  &lt;legend&gt;
+
+    &lt;strong&gt;城市管理&lt;/strong&gt;
+
+  &lt;/legend&gt;
+
+
+
+  &lt;form th:action="@{/city/{action}(action=${action})}" method="post" class="form-horizontal"&gt;
+
+
+
+    &lt;div class="form-group"&gt;
+
+      &lt;label for="city_id" class="col-sm-2 control-label"&gt;城市编号:&lt;/label&gt;
+
+      &lt;div class="col-xs-4"&gt;
+
+        &lt;input type="text" class="form-control" id="city_id" name="id" th:value="${city.id}"/&gt;
+
+      &lt;/div&gt;
+
+    &lt;/div&gt;
+
+
+
+    &lt;div class="form-group"&gt;
+
+      &lt;label for="city_name" class="col-sm-2 control-label"&gt;城市名称:&lt;/label&gt;
+
+      &lt;div class="col-xs-4"&gt;
+
+        &lt;input type="text" class="form-control" id="city_name" name="cityName" th:value="${city.cityName}"/&gt;
+
+      &lt;/div&gt;
+
+    &lt;/div&gt;
+
+
+
+    &lt;div class="form-group"&gt;
+
+      &lt;label for="city_description" class="col-sm-2 control-label"&gt;城市描述:&lt;/label&gt;
+
+      &lt;div class="col-xs-4"&gt;
+
+        &lt;input class="form-control" id="city_description" rows="3" name="description"
+
+                  th:value="${city.description}" /&gt;
+
+
+
+      &lt;/div&gt;
+
+    &lt;/div&gt;
+
+
+
+    &lt;div class="form-group"&gt;
+
+      &lt;label for="city_provinceId" class="col-sm-2 control-label"&gt;省份编号:&lt;/label&gt;
+
+      &lt;div class="col-xs-4"&gt;
+
+        &lt;input type="text" class="form-control" id="city_provinceId" name="provinceId" th:value="${city.provinceId}"
+
+               /&gt;
+
+      &lt;/div&gt;
+
+    &lt;/div&gt;
+
+
+
+    &lt;div class="form-group"&gt;
+
+      &lt;div class="col-sm-offset-2 col-sm-10"&gt;
+
+        &lt;input class="btn btn-primary" type="submit" value="提交"/&gt;&amp;nbsp;&amp;nbsp;
+
+        &lt;input class="btn" type="button" value="返回" onclick="history.back()"/&gt;
+
+      &lt;/div&gt;
+
+    &lt;/div&gt;
+
+  &lt;/form&gt;
+
+&lt;/div&gt;
+
+&lt;/body&gt;
+
+&lt;/html&gt;
+
+
+
+</code></pre>
+
+<p>利用的是 Thymeleaf 语法，上面章节也讲过具体使用方法，这里实现新增城市和更新城市两个操作。巧妙利用了 action 字段去动态判断请求是新增还是更新的控制层方法，然后进行 form 表单提交。</p>
+
+<h3>cityList 城市列表页面</h3>
+
+<p>列表页面代码如下：</p>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+
+&lt;html lang="zh-CN"&gt;
+
+&lt;head&gt;
+
+    &lt;script type="text/javascript" th:src="@{https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js}"&gt;&lt;/script&gt;
+
+    &lt;link th:href="@{https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css}" rel="stylesheet"/&gt;
+
+    &lt;link th:href="@{/css/default.css}" rel="stylesheet"/&gt;
+
+    &lt;link rel="icon" th:href="@{/images/favicon.ico}" type="image/x-icon"/&gt;
+
+    &lt;meta charset="UTF-8"/&gt;
+
+    &lt;title&gt;城市列表&lt;/title&gt;
+
+&lt;/head&gt;
+
+
+
+&lt;body&gt;
+
+
+
+&lt;div class="contentDiv"&gt;
+
+
+
+    &lt;table class="table table-hover table-condensed"&gt;
+
+        &lt;legend&gt;
+
+            &lt;strong&gt;城市列表&lt;/strong&gt;
+
+        &lt;/legend&gt;
+
+        &lt;thead&gt;
+
+        &lt;tr&gt;
+
+            &lt;th&gt;城市编号&lt;/th&gt;
+
+            &lt;th&gt;城市名称&lt;/th&gt;
+
+            &lt;th&gt;描述&lt;/th&gt;
+
+            &lt;th&gt;省份编号&lt;/th&gt;
+
+            &lt;th&gt;管理&lt;/th&gt;
+
+        &lt;/tr&gt;
+
+        &lt;/thead&gt;
+
+        &lt;tbody&gt;
+
+        &lt;tr th:each="city : ${cityList}"&gt;
+
+            &lt;th scope="row" th:text="${city.id}"&gt;&lt;/th&gt;
+
+            &lt;td&gt;&lt;a th:href="@{/city/update/{cityId}(cityId=${city.id})}" th:text="${city.cityName}"&gt;&lt;/a&gt;&lt;/td&gt;
+
+            &lt;td th:text="${city.description}"&gt;&lt;/td&gt;
+
+            &lt;td th:text="${city.provinceId}"&gt;&lt;/td&gt;
+
+            &lt;td&gt;&lt;a class="btn btn-danger" th:href="@{/city/delete/{cityId}(cityId=${city.id})}"&gt;删除&lt;/a&gt;&lt;/td&gt;
+
+        &lt;/tr&gt;
+
+
+
+        &lt;/tbody&gt;
+
+    &lt;/table&gt;
+
+
+
+    &lt;div&gt;&lt;a class="btn btn-primary" href="/city/create" role="button"&gt;新增城市&lt;/a&gt;&lt;/div&gt;
+
+&lt;/div&gt;
+
+
+
+&lt;/body&gt;
+
+&lt;/html&gt;
+
+
+
+</code></pre>
+
+<p>这里编写了一个列表对象的循环和简单的页面跳转逻辑，下面看看这两个页面组合使用的运行场景。</p>
+
+<h3>运行工程</h3>
+
+<p>一个 CRUD 的 Spring Boot Webflux 工程就开发完毕了，下面运行工程验证一下。使用 IDEA 右侧工具栏，点击 Maven Project Tab 选项，单击使用下 Maven 插件的 install 命令；或者使用命令行的形式，在工程根目录下，执行 Maven 清理和安装工程的指令：</p>
+
+<pre><code>cd springboot-webflux-10-book-manage-sys
+
+mvn clean install
+
+
+
+</code></pre>
+
+<p>在控制台中看到成功的输出：</p>
+
+<pre><code>... 省略
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] BUILD SUCCESS
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] Total time: 01:30 min
+
+[INFO] Finished at: 2017-10-15T10:00:54+08:00
+
+[INFO] Final Memory: 31M/174M
+
+[INFO] ------------------------------------------------------------------------
+
+
+
+</code></pre>
+
+<p>在 IDEA 中执行 Application 类启动，任意正常模式或者 Debug 模式，可以在控制台看到成功运行的输出：</p>
+
+<pre><code>... 省略
+
+2018-04-10 08:43:39.932  INFO 2052 --- [ctor-http-nio-1] r.ipc.netty.tcp.BlockingNettyContext     : Started HttpServer on /0:0:0:0:0:0:0:0:8080
+
+2018-04-10 08:43:39.935  INFO 2052 --- [           main] o.s.b.web.embedded.netty.NettyWebServer  : Netty started on port(s): 8080
+
+2018-04-10 08:43:39.960  INFO 2052 --- [           main] org.spring.springboot.Application        : Started Application in 6.547 seconds (JVM running for 9.851)
+
+
+
+</code></pre>
+
+<p>打开浏览器，输入地址：http://localhost:8080/city，即打开城市列表页面：</p>
+
+<p><img src="assets/99e91edf11b6ff64025c7a74c4a1db561525504-1608971466446.png" alt="file"></p>
+
+<p>然后新增，或者单击城市名称修改，到表单提交页面：</p>
+
+<p><img src="assets/e9364ebeb39e5a17cb8ee10bdd1736381525505.png" alt="file"></p>
+
+<h3>总结</h3>
+
+<p>这里，初步实现了小案例城市管理系统，基本满足日常的 CRUD 业务流程操作。上手教程只是上手，具体复杂逻辑，欢迎一起多交流学习。</p>
+
+</div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<a class="off-canvas-overlay" onclick="hide_canvas()"></a>
+</div>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v652eace1692a40cfa3763df669d7439c1639079717194" integrity="sha512-Gi7xpJR8tSkrpF7aordPZQlW2DLtzUlZcumS8dMQjwDHEnw9I7ZLyiOj/6tZStRBGtGgN6ceN6cMH8z7etPGlw==" data-cf-beacon='{"rayId":"709ba3a57eaefbdc","version":"2021.12.0","r":1,"token":"1f5d475227ce4f0089a7cff1ab17c0f5","si":100}' crossorigin="anonymous"></script>
+</body>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-NPSEEVD756"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', 'G-NPSEEVD756');
+    var path = window.location.pathname
+    var cookie = getCookie("lastPath");
+    console.log(path)
+    if (path.replace("/", "") === "") {
+        if (cookie.replace("/", "") !== "") {
+            console.log(cookie)
+            document.getElementById("tip").innerHTML = "<a href='" + cookie + "'>跳转到上次进度</a>"
+        }
+    } else {
+        setCookie("lastPath", path)
+    }
+
+    function setCookie(cname, cvalue) {
+        var d = new Date();
+        d.setTime(d.getTime() + (180 * 24 * 60 * 60 * 1000));
+        var expires = "expires=" + d.toGMTString();
+        document.cookie = cname + "=" + cvalue + "; " + expires + ";path = /";
+    }
+
+    function getCookie(cname) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+            var c = ca[i].trim();
+            if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
+        }
+        return "";
+    }
+
+</script>
+
+</html>
